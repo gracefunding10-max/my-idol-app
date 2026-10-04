@@ -1,7 +1,3 @@
-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im51bG5xZWtjbW5wZ3NydHZvbWF5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEwNjIwMzAsImV4cCI6MjEwNjYzODAzMH0._wAsXL0PREMP9s0BAPwWHyOSRw7rk1XLm4EN3NMRfb0
-
-sb_publishable_eF15RE9F_bocuYA4N3UGJA_nDR51YmR
-
 <!DOCTYPE html>
 <html lang="en" class="h-full bg-brand-black text-slate-100">
 <head>
@@ -351,9 +347,9 @@ sb_publishable_eF15RE9F_bocuYA4N3UGJA_nDR51YmR
     </div>
 
     <script>
-        // ⚠️ REPLACE THESE WITH YOUR SUPABASE PROJECT URL AND ANON KEY
-        const SUPABASE_URL = 'YOUR_SUPABASE_URL';
-        const SUPABASE_KEY = 'YOUR_SUPABASE_ANON_KEY';
+        // ✅ YOUR SUPABASE CREDENTIALS ARE CORRECTLY PLACED HERE
+        const SUPABASE_URL = 'https://nulnqekcmnpgsrtvomay.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im51bG5xZWtjbW5wZ3NydHZvbWF5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEwNjIwMzAsImV4cCI6MjEwNjYzODAzMH0._wAsXL0PREMP9s0BAPwWHyOSRw7rk1XLm4EN3NMRfb0';
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         const ADMIN_CREDS = { u: 'sys_root_88x', p: 'MyIdol$ecure2024!X9#G0ld' };
@@ -366,7 +362,6 @@ sb_publishable_eF15RE9F_bocuYA4N3UGJA_nDR51YmR
                 this.setupLogoTrigger();
                 this.setupAudioListeners();
                 
-                // Check for existing session
                 const savedUser = localStorage.getItem('myidol_current_user');
                 if (savedUser) {
                     this.state.user = JSON.parse(savedUser);
@@ -375,7 +370,6 @@ sb_publishable_eF15RE9F_bocuYA4N3UGJA_nDR51YmR
                     this.navTo('auth');
                 }
 
-                // Seed database if empty
                 this.seedDatabase();
             },
 
@@ -617,7 +611,7 @@ sb_publishable_eF15RE9F_bocuYA4N3UGJA_nDR51YmR
                 const c = this.state.celebs.find(x => x.id === this.currentProfileId); if (!c) return;
                 const newFollowed = !c.isFollowed; const newFollowers = (c.followers || 0) + (newFollowed ? 1 : -1);
                 await supabase.from('celebs').update({ isFollowed: newFollowed, followers: newFollowers }).eq('id', c.id);
-                this.openProfile(this.currentProfileId); // Refresh UI
+                this.openProfile(this.currentProfileId);
             },
 
             playSong(celebId, songId) {
@@ -764,7 +758,6 @@ sb_publishable_eF15RE9F_bocuYA4N3UGJA_nDR51YmR
                 }).eq('id', this.currentChatId);
                 
                 input.value = ''; this.playNotificationSound();
-                // Refresh chat list in background
                 this.loadChats();
             },
 
