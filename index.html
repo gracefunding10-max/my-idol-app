@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>MY IDOL - Exclusive Access</title>
     
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -28,7 +27,6 @@
         }
     </script>
 
-    <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
@@ -61,10 +59,71 @@
             border-color: #D4AF37;
             outline: none;
         }
-        /* Hide number input arrows */
         input[type=number]::-webkit-inner-spin-button, 
         input[type=number]::-webkit-outer-spin-button { 
             -webkit-appearance: none; margin: 0; 
+        }
+        
+        /* Audio Player Styles */
+        .audio-player {
+            background: linear-gradient(135deg, rgba(212, 175, 55, 0.1) 0%, rgba(180, 83, 9, 0.05) 100%);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+        }
+        .progress-bar {
+            background: #2A2A2A;
+            height: 4px;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            background: linear-gradient(90deg, #D4AF37, #FCD34D);
+            height: 100%;
+            transition: width 0.1s linear;
+        }
+        
+        /* PIN Dots */
+        .pin-dot {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 2px solid #D4AF37;
+            transition: all 0.2s;
+        }
+        .pin-dot.filled {
+            background: #D4AF37;
+        }
+        
+        /* Animations */
+        @keyframes pulse-gold {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.4); }
+            50% { box-shadow: 0 0 0 10px rgba(212, 175, 55, 0); }
+        }
+        .pulse-gold { animation: pulse-gold 2s infinite; }
+        
+        @keyframes slide-up {
+            from { transform: translateY(100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .slide-up { animation: slide-up 0.3s ease-out; }
+        
+        /* Now Playing Animation */
+        .playing-bars {
+            display: flex;
+            align-items: end;
+            gap: 2px;
+            height: 16px;
+        }
+        .playing-bars span {
+            width: 3px;
+            background: #D4AF37;
+            border-radius: 1px;
+            animation: sound-bar 0.8s ease-in-out infinite;
+        }
+        .playing-bars span:nth-child(2) { animation-delay: 0.2s; }
+        .playing-bars span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes sound-bar {
+            0%, 100% { height: 4px; }
+            50% { height: 16px; }
         }
     </style>
 </head>
@@ -80,7 +139,7 @@
         </div>
         
         <div class="flex items-center space-x-3">
-            <select id="header-role-select" onchange="app.switchRole(this.value)" class="bg-brand-black text-xs border border-brand-gold/30 rounded-lg px-2 py-1.5 text-slate-200 focus:outline-none focus:border-brand-gold">
+            <select id="header-role-select" onchange="app.switchRole(this.value)" class="bg-brand-black text-xs border border-brand-gold/30 rounded-lg px-2 py-1.5 text-slate-200 focus:outline-none focus:border-brand-gold hidden">
                 <option value="fan">Fan View</option>
                 <option value="celebrity">Celebrity View</option>
             </select>
@@ -91,11 +150,11 @@
         </div>
     </header>
 
-    <!-- Main Content Area -->
+    <!-- Main Content -->
     <main id="main-container" class="flex-1 overflow-y-auto relative w-full max-w-md mx-auto bg-brand-black">
         
         <!-- VIEW: AUTH LANDING -->
-        <section id="view-auth" class="hidden h-full flex flex-col items-center justify-center p-6 space-y-8 animate-fade-in">
+        <section id="view-auth" class="hidden h-full flex flex-col items-center justify-center p-6 space-y-6">
             <div class="w-24 h-24 rounded-3xl gradient-bg p-1 shadow-2xl shadow-brand-gold/20 mb-2">
                 <div class="w-full h-full bg-brand-dark rounded-[20px] flex items-center justify-center">
                     <i class="fa-solid fa-crown text-5xl gradient-text"></i>
@@ -107,44 +166,101 @@
                 <p class="text-slate-400 text-sm max-w-xs mx-auto">The exclusive platform where fans connect directly with world-class icons.</p>
             </div>
 
-            <div class="w-full space-y-4 max-w-sm">
-                <button onclick="app.navTo('signup-fan')" class="w-full glass-card hover:border-brand-gold/50 rounded-2xl p-4 text-left flex items-center space-x-4 transition-all group active:scale-95">
-                    <div class="w-12 h-12 rounded-xl bg-brand-gold/10 border border-brand-gold/30 flex items-center justify-center group-hover:bg-brand-gold transition-all">
-                        <i class="fa-solid fa-heart text-brand-gold text-xl group-hover:text-brand-black"></i>
-                    </div>
-                    <div class="flex-1">
-                        <h3 class="font-bold text-base text-slate-100">Join as Fan</h3>
-                        <p class="text-xs text-slate-400 mt-0.5">Connect with superstars & chat 1-on-1</p>
-                    </div>
-                    <i class="fa-solid fa-chevron-right text-slate-500 group-hover:text-brand-gold"></i>
+            <div class="w-full space-y-3 max-w-sm">
+                <button onclick="app.navTo('login')" class="w-full gradient-bg text-brand-black font-bold py-3.5 rounded-xl shadow-lg shadow-brand-gold/20 active:scale-95 transition-transform">
+                    <i class="fa-solid fa-right-to-bracket mr-2"></i> Login
                 </button>
-
-                <button onclick="app.navTo('signup-celeb')" class="w-full glass-card hover:border-brand-gold/50 rounded-2xl p-4 text-left flex items-center space-x-4 transition-all group active:scale-95">
-                    <div class="w-12 h-12 rounded-xl bg-brand-gold/10 border border-brand-gold/30 flex items-center justify-center group-hover:bg-brand-gold transition-all">
-                        <i class="fa-solid fa-star text-brand-gold text-xl group-hover:text-brand-black"></i>
-                    </div>
-                    <div class="flex-1">
-                        <h3 class="font-bold text-base text-slate-100">Join as Celebrity</h3>
-                        <p class="text-xs text-slate-400 mt-0.5">Engage with fans & manage media</p>
-                    </div>
-                    <i class="fa-solid fa-chevron-right text-slate-500 group-hover:text-brand-gold"></i>
+                
+                <button onclick="app.navTo('signup-role')" class="w-full glass-card hover:border-brand-gold/50 rounded-xl py-3.5 text-left px-4 flex items-center justify-center space-x-2 transition-all active:scale-95">
+                    <i class="fa-solid fa-user-plus text-brand-gold"></i>
+                    <span class="font-bold text-white">Create Account</span>
                 </button>
             </div>
         </section>
 
-        <!-- VIEW: FAN SIGNUP -->
-        <section id="view-signup-fan" class="hidden h-full flex flex-col p-6 space-y-6">
+        <!-- VIEW: LOGIN -->
+        <section id="view-login" class="hidden h-full flex flex-col p-6 space-y-6">
             <button onclick="app.navTo('auth')" class="text-slate-400 hover:text-white flex items-center space-x-2 text-sm">
                 <i class="fa-solid fa-arrow-left"></i> <span>Back</span>
             </button>
             
             <div>
-                <h2 class="text-2xl font-bold text-white">Create Fan Profile</h2>
-                <p class="text-slate-400 text-sm mt-1">Complete your details to start connecting.</p>
+                <h2 class="text-2xl font-bold text-white">Login</h2>
+                <p class="text-slate-400 text-sm mt-1">Enter your credentials to continue.</p>
             </div>
 
-            <form onsubmit="app.handleFanSignup(event)" class="space-y-4 flex-1">
-                <div class="flex flex-col items-center space-y-2 mb-4">
+            <div class="space-y-4">
+                <div>
+                    <label class="text-xs text-slate-400 mb-1 block">Account Type</label>
+                    <select id="login-type" class="w-full input-field rounded-xl px-4 py-3 text-sm">
+                        <option value="fan">Fan (6-Digit ID)</option>
+                        <option value="celebrity">Celebrity (Username)</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="text-xs text-slate-400 mb-1 block" id="login-id-label">Your 6-Digit ID</label>
+                    <input type="text" id="login-id" placeholder="Enter your ID" class="w-full input-field rounded-xl px-4 py-3 text-sm">
+                </div>
+
+                <div>
+                    <label class="text-xs text-slate-400 mb-1 block">Password</label>
+                    <input type="password" id="login-pass" placeholder="Enter password" class="w-full input-field rounded-xl px-4 py-3 text-sm">
+                </div>
+
+                <button onclick="app.handleLogin()" class="w-full gradient-bg text-brand-black font-bold py-3.5 rounded-xl shadow-lg shadow-brand-gold/20 active:scale-95 transition-transform">
+                    Login
+                </button>
+            </div>
+        </section>
+
+        <!-- VIEW: SIGNUP ROLE SELECT -->
+        <section id="view-signup-role" class="hidden h-full flex flex-col items-center justify-center p-6 space-y-6">
+            <button onclick="app.navTo('auth')" class="absolute top-6 left-6 text-slate-400 hover:text-white flex items-center space-x-2 text-sm">
+                <i class="fa-solid fa-arrow-left"></i> <span>Back</span>
+            </button>
+            
+            <div class="text-center space-y-2">
+                <h2 class="text-2xl font-bold text-white">Create Account</h2>
+                <p class="text-slate-400 text-sm">Choose your account type</p>
+            </div>
+
+            <div class="w-full space-y-4 max-w-sm">
+                <button onclick="app.navTo('signup-fan')" class="w-full glass-card hover:border-brand-gold/50 rounded-2xl p-4 text-left flex items-center space-x-4 transition-all group active:scale-95">
+                    <div class="w-12 h-12 rounded-xl bg-brand-gold/10 border border-brand-gold/30 flex items-center justify-center">
+                        <i class="fa-solid fa-heart text-brand-gold text-xl"></i>
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="font-bold text-base text-slate-100">Join as Fan</h3>
+                        <p class="text-xs text-slate-400 mt-0.5">Get your unique Fan ID</p>
+                    </div>
+                </button>
+
+                <button onclick="app.navTo('signup-celeb')" class="w-full glass-card hover:border-brand-gold/50 rounded-2xl p-4 text-left flex items-center space-x-4 transition-all group active:scale-95">
+                    <div class="w-12 h-12 rounded-xl bg-brand-gold/10 border border-brand-gold/30 flex items-center justify-center">
+                        <i class="fa-solid fa-star text-brand-gold text-xl"></i>
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="font-bold text-base text-slate-100">Join as Celebrity</h3>
+                        <p class="text-xs text-slate-400 mt-0.5">Get secure credentials</p>
+                    </div>
+                </button>
+            </div>
+        </section>
+
+        <!-- VIEW: FAN SIGNUP -->
+        <section id="view-signup-fan" class="hidden h-full flex flex-col p-6 space-y-4 overflow-y-auto">
+            <button onclick="app.navTo('signup-role')" class="text-slate-400 hover:text-white flex items-center space-x-2 text-sm">
+                <i class="fa-solid fa-arrow-left"></i> <span>Back</span>
+            </button>
+            
+            <div>
+                <h2 class="text-2xl font-bold text-white">Create Fan Profile</h2>
+                <p class="text-slate-400 text-sm mt-1">You'll receive a unique 6-digit ID.</p>
+            </div>
+
+            <form onsubmit="app.handleFanSignup(event)" class="space-y-3 flex-1">
+                <div class="flex flex-col items-center space-y-2 mb-2">
                     <div class="relative group cursor-pointer" onclick="document.getElementById('fan-avatar').click()">
                         <img id="fan-avatar-preview" src="https://ui-avatars.com/api/?name=Fan&background=D4AF37&color=000" class="w-20 h-20 rounded-full border-2 border-brand-gold object-cover">
                         <div class="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
@@ -152,43 +268,40 @@
                         </div>
                     </div>
                     <input type="file" id="fan-avatar" accept="image/*" class="hidden" onchange="app.previewImage(this, 'fan-avatar-preview')">
-                    <span class="text-[10px] text-slate-500">Tap to upload photo</span>
                 </div>
 
-                <div class="space-y-3">
-                    <input type="text" id="fan-name" required placeholder="Full Name" class="w-full input-field rounded-xl px-4 py-3 text-sm">
-                    <div class="grid grid-cols-2 gap-3">
-                        <input type="number" id="fan-age" required min="13" max="99" placeholder="Age" class="w-full input-field rounded-xl px-4 py-3 text-sm">
-                        <input type="tel" id="fan-phone" required placeholder="Phone Number" class="w-full input-field rounded-xl px-4 py-3 text-sm">
-                    </div>
-                    <input type="text" id="fan-location" required placeholder="Location (City, Country)" class="w-full input-field rounded-xl px-4 py-3 text-sm">
-                    <select id="fan-reason" required class="w-full input-field rounded-xl px-4 py-3 text-sm">
-                        <option value="" disabled selected>Reason for joining...</option>
-                        <option value="Chat with idols">Chat with idols directly</option>
-                        <option value="Exclusive updates">Get exclusive updates</option>
-                        <option value="VIP Access">Seek VIP Membership</option>
-                    </select>
+                <input type="text" id="fan-name" required placeholder="Full Name" class="w-full input-field rounded-xl px-4 py-3 text-sm">
+                <div class="grid grid-cols-2 gap-3">
+                    <input type="number" id="fan-age" required min="13" max="99" placeholder="Age" class="w-full input-field rounded-xl px-4 py-3 text-sm">
+                    <input type="tel" id="fan-phone" required placeholder="Phone" class="w-full input-field rounded-xl px-4 py-3 text-sm">
                 </div>
+                <input type="text" id="fan-location" required placeholder="Location" class="w-full input-field rounded-xl px-4 py-3 text-sm">
+                <select id="fan-reason" required class="w-full input-field rounded-xl px-4 py-3 text-sm">
+                    <option value="" disabled selected>Reason for joining...</option>
+                    <option value="Chat with idols">Chat with idols</option>
+                    <option value="Exclusive updates">Exclusive updates</option>
+                    <option value="VIP Access">VIP Membership</option>
+                </select>
 
                 <button type="submit" class="w-full gradient-bg text-brand-black font-bold py-3.5 rounded-xl shadow-lg shadow-brand-gold/20 mt-4 active:scale-95 transition-transform">
-                    Complete Setup
+                    Create Account
                 </button>
             </form>
         </section>
 
         <!-- VIEW: CELEBRITY SIGNUP -->
-        <section id="view-signup-celeb" class="hidden h-full flex flex-col p-6 space-y-6">
-            <button onclick="app.navTo('auth')" class="text-slate-400 hover:text-white flex items-center space-x-2 text-sm">
+        <section id="view-signup-celeb" class="hidden h-full flex flex-col p-6 space-y-4 overflow-y-auto">
+            <button onclick="app.navTo('signup-role')" class="text-slate-400 hover:text-white flex items-center space-x-2 text-sm">
                 <i class="fa-solid fa-arrow-left"></i> <span>Back</span>
             </button>
             
             <div>
                 <h2 class="text-2xl font-bold text-white">Create Star Profile</h2>
-                <p class="text-slate-400 text-sm mt-1">Set up your official presence.</p>
+                <p class="text-slate-400 text-sm mt-1">You'll receive secure login credentials.</p>
             </div>
 
-            <form onsubmit="app.handleCelebSignup(event)" class="space-y-4 flex-1">
-                <div class="flex flex-col items-center space-y-2 mb-4">
+            <form onsubmit="app.handleCelebSignup(event)" class="space-y-3 flex-1">
+                <div class="flex flex-col items-center space-y-2 mb-2">
                     <div class="relative group cursor-pointer" onclick="document.getElementById('celeb-avatar').click()">
                         <img id="celeb-avatar-preview" src="https://ui-avatars.com/api/?name=Star&background=D4AF37&color=000" class="w-20 h-20 rounded-full border-2 border-brand-gold object-cover">
                         <div class="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
@@ -198,26 +311,93 @@
                     <input type="file" id="celeb-avatar" accept="image/*" class="hidden" onchange="app.previewImage(this, 'celeb-avatar-preview')">
                 </div>
 
-                <div class="space-y-3">
-                    <input type="text" id="celeb-name" required placeholder="Stage Name / Artist Name" class="w-full input-field rounded-xl px-4 py-3 text-sm">
-                    <select id="celeb-category" required class="w-full input-field rounded-xl px-4 py-3 text-sm">
-                        <option value="Music">Music Artist</option>
-                        <option value="Cinema">Actor / Actress</option>
-                        <option value="Sports">Athlete</option>
-                        <option value="Fashion">Model / Influencer</option>
-                        <option value="Gaming">Gamer / Streamer</option>
-                    </select>
-                    <input type="text" id="celeb-country" required placeholder="Country" class="w-full input-field rounded-xl px-4 py-3 text-sm">
-                    <textarea id="celeb-bio" rows="3" required placeholder="Public Bio..." class="w-full input-field rounded-xl px-4 py-3 text-sm resize-none"></textarea>
-                </div>
+                <input type="text" id="celeb-name" required placeholder="Stage Name" class="w-full input-field rounded-xl px-4 py-3 text-sm">
+                <select id="celeb-category" required class="w-full input-field rounded-xl px-4 py-3 text-sm">
+                    <option value="Music">Music Artist</option>
+                    <option value="Cinema">Actor/Actress</option>
+                    <option value="Sports">Athlete</option>
+                    <option value="Fashion">Model</option>
+                    <option value="Gaming">Gamer</option>
+                </select>
+                <input type="text" id="celeb-country" required placeholder="Country" class="w-full input-field rounded-xl px-4 py-3 text-sm">
+                <textarea id="celeb-bio" rows="3" required placeholder="Public Bio..." class="w-full input-field rounded-xl px-4 py-3 text-sm resize-none"></textarea>
 
                 <button type="submit" class="w-full gradient-bg text-brand-black font-bold py-3.5 rounded-xl shadow-lg shadow-brand-gold/20 mt-4 active:scale-95 transition-transform">
-                    Launch Profile
+                    Create Profile
                 </button>
             </form>
         </section>
 
-        <!-- VIEW: DASHBOARD (Fan/Celeb List) -->
+        <!-- VIEW: CREDENTIALS DISPLAY (After Signup) -->
+        <section id="view-credentials" class="hidden h-full flex flex-col items-center justify-center p-6 space-y-6">
+            <div class="w-16 h-16 rounded-full bg-emerald-500/20 border-2 border-emerald-500 flex items-center justify-center">
+                <i class="fa-solid fa-check text-3xl text-emerald-500"></i>
+            </div>
+            
+            <div class="text-center space-y-2">
+                <h2 class="text-2xl font-bold text-white">Account Created!</h2>
+                <p class="text-slate-400 text-sm">Save these credentials securely. You won't see them again.</p>
+            </div>
+
+            <div class="w-full glass-card rounded-2xl p-5 space-y-4 border-2 border-brand-gold/30">
+                <div>
+                    <label class="text-[10px] text-slate-400 uppercase tracking-wider">Your Login ID</label>
+                    <div class="flex items-center justify-between bg-brand-black rounded-xl p-3 mt-1">
+                        <span id="cred-id" class="text-xl font-bold text-brand-gold font-mono tracking-wider"></span>
+                        <button onclick="app.copyCred('cred-id')" class="text-brand-gold hover:text-white"><i class="fa-solid fa-copy"></i></button>
+                    </div>
+                </div>
+                <div>
+                    <label class="text-[10px] text-slate-400 uppercase tracking-wider">Password</label>
+                    <div class="flex items-center justify-between bg-brand-black rounded-xl p-3 mt-1">
+                        <span id="cred-pass" class="text-sm font-mono text-white"></span>
+                        <button onclick="app.copyCred('cred-pass')" class="text-brand-gold hover:text-white"><i class="fa-solid fa-copy"></i></button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="w-full space-y-3">
+                <button onclick="app.setupPIN()" class="w-full gradient-bg text-brand-black font-bold py-3.5 rounded-xl shadow-lg shadow-brand-gold/20 active:scale-95 transition-transform">
+                    <i class="fa-solid fa-fingerprint mr-2"></i> Setup Security (PIN/Biometric)
+                </button>
+                <button onclick="app.skipToDashboard()" class="w-full glass-card text-slate-300 font-semibold py-3 rounded-xl active:scale-95 transition-transform">
+                    Skip & Go to Dashboard
+                </button>
+            </div>
+        </section>
+
+        <!-- VIEW: PIN SETUP -->
+        <section id="view-pin-setup" class="hidden h-full flex flex-col items-center justify-center p-6 space-y-8">
+            <div class="text-center space-y-2">
+                <i class="fa-solid fa-shield-halved text-4xl text-brand-gold"></i>
+                <h2 class="text-2xl font-bold text-white">Create PIN</h2>
+                <p class="text-slate-400 text-sm" id="pin-setup-msg">Enter a 4-digit PIN for quick access</p>
+            </div>
+
+            <div class="flex space-x-3" id="pin-dots-container">
+                <div class="pin-dot"></div>
+                <div class="pin-dot"></div>
+                <div class="pin-dot"></div>
+                <div class="pin-dot"></div>
+            </div>
+
+            <div class="grid grid-cols-3 gap-4 w-full max-w-xs">
+                <button onclick="app.enterPIN(1)" class="w-16 h-16 rounded-full bg-brand-card border border-brand-border text-white text-xl font-bold hover:bg-brand-gold/20 transition-colors">1</button>
+                <button onclick="app.enterPIN(2)" class="w-16 h-16 rounded-full bg-brand-card border border-brand-border text-white text-xl font-bold hover:bg-brand-gold/20 transition-colors">2</button>
+                <button onclick="app.enterPIN(3)" class="w-16 h-16 rounded-full bg-brand-card border border-brand-border text-white text-xl font-bold hover:bg-brand-gold/20 transition-colors">3</button>
+                <button onclick="app.enterPIN(4)" class="w-16 h-16 rounded-full bg-brand-card border border-brand-border text-white text-xl font-bold hover:bg-brand-gold/20 transition-colors">4</button>
+                <button onclick="app.enterPIN(5)" class="w-16 h-16 rounded-full bg-brand-card border border-brand-border text-white text-xl font-bold hover:bg-brand-gold/20 transition-colors">5</button>
+                <button onclick="app.enterPIN(6)" class="w-16 h-16 rounded-full bg-brand-card border border-brand-border text-white text-xl font-bold hover:bg-brand-gold/20 transition-colors">6</button>
+                <button onclick="app.enterPIN(7)" class="w-16 h-16 rounded-full bg-brand-card border border-brand-border text-white text-xl font-bold hover:bg-brand-gold/20 transition-colors">7</button>
+                <button onclick="app.enterPIN(8)" class="w-16 h-16 rounded-full bg-brand-card border border-brand-border text-white text-xl font-bold hover:bg-brand-gold/20 transition-colors">8</button>
+                <button onclick="app.enterPIN(9)" class="w-16 h-16 rounded-full bg-brand-card border border-brand-border text-white text-xl font-bold hover:bg-brand-gold/20 transition-colors">9</button>
+                <button onclick="app.clearPIN()" class="w-16 h-16 rounded-full bg-brand-card border border-brand-border text-slate-400 text-sm font-bold hover:bg-red-900/20 transition-colors">Clear</button>
+                <button onclick="app.enterPIN(0)" class="w-16 h-16 rounded-full bg-brand-card border border-brand-border text-white text-xl font-bold hover:bg-brand-gold/20 transition-colors">0</button>
+                <button onclick="app.deletePIN()" class="w-16 h-16 rounded-full bg-brand-card border border-brand-border text-slate-400 text-sm font-bold hover:bg-brand-gold/20 transition-colors"><i class="fa-solid fa-delete-left"></i></button>
+            </div>
+        </section>
+
+        <!-- VIEW: DASHBOARD -->
         <section id="view-dashboard" class="hidden h-full flex flex-col p-4 space-y-4">
             <div class="flex items-center justify-between">
                 <h2 class="text-xl font-bold text-white">Explore Stars</h2>
@@ -229,12 +409,10 @@
                 <input type="text" id="search-bar" onkeyup="app.filterCelebs()" placeholder="Search name or category..." class="w-full input-field rounded-xl pl-10 pr-4 py-3 text-sm">
             </div>
 
-            <div id="celeb-list-container" class="flex-1 overflow-y-auto space-y-3 pb-20">
-                <!-- Dynamic Content -->
-            </div>
+            <div id="celeb-list-container" class="flex-1 overflow-y-auto space-y-3 pb-20"></div>
         </section>
 
-        <!-- VIEW: CELEBRITY PROFILE (Detailed) -->
+        <!-- VIEW: CELEBRITY PROFILE -->
         <section id="view-profile" class="hidden h-full flex flex-col overflow-y-auto pb-20">
             <div class="relative h-40 bg-brand-dark">
                 <img id="prof-cover" src="" class="w-full h-full object-cover opacity-50">
@@ -268,7 +446,6 @@
                     </div>
                 </div>
 
-                <!-- Media Tabs -->
                 <div class="flex border-b border-brand-border mt-6">
                     <button onclick="app.switchProfTab('songs')" id="tab-btn-songs" class="flex-1 py-3 text-sm font-bold text-brand-gold border-b-2 border-brand-gold">Songs</button>
                     <button onclick="app.switchProfTab('videos')" id="tab-btn-videos" class="flex-1 py-3 text-sm font-bold text-slate-500 hover:text-white">Videos</button>
@@ -283,12 +460,44 @@
             </div>
         </section>
 
+        <!-- VIEW: AUDIO PLAYER (Now Playing) -->
+        <section id="view-player" class="hidden h-full flex flex-col p-6 space-y-6">
+            <button onclick="app.navTo('dashboard')" class="text-slate-400 hover:text-white flex items-center space-x-2 text-sm">
+                <i class="fa-solid fa-arrow-left"></i> <span>Back</span>
+            </button>
+
+            <div class="flex-1 flex flex-col items-center justify-center space-y-6">
+                <img id="player-cover" src="" class="w-64 h-64 rounded-3xl object-cover shadow-2xl shadow-brand-gold/20 border-2 border-brand-gold/30">
+                
+                <div class="text-center space-y-2">
+                    <h2 id="player-title" class="text-2xl font-bold text-white">Song Title</h2>
+                    <p id="player-artist" class="text-sm text-brand-gold">Artist Name</p>
+                </div>
+
+                <div class="w-full space-y-2">
+                    <div class="progress-bar w-full">
+                        <div id="player-progress" class="progress-fill" style="width: 0%"></div>
+                    </div>
+                    <div class="flex justify-between text-[10px] text-slate-400">
+                        <span id="player-current-time">0:00</span>
+                        <span id="player-duration">0:00</span>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-center space-x-8">
+                    <button onclick="app.seekPlayer(-10)" class="text-slate-400 hover:text-white text-2xl"><i class="fa-solid fa-rotate-left"></i></button>
+                    <button onclick="app.togglePlayPause()" id="player-play-btn" class="w-16 h-16 rounded-full gradient-bg text-brand-black flex items-center justify-center text-2xl shadow-lg shadow-brand-gold/30 active:scale-95 transition-transform">
+                        <i class="fa-solid fa-play"></i>
+                    </button>
+                    <button onclick="app.seekPlayer(10)" class="text-slate-400 hover:text-white text-2xl"><i class="fa-solid fa-rotate-right"></i></button>
+                </div>
+            </div>
+        </section>
+
         <!-- VIEW: CHAT LIST -->
         <section id="view-chat-list" class="hidden h-full flex flex-col p-4 space-y-4">
             <h2 class="text-xl font-bold text-white">Messages</h2>
-            <div id="chat-threads-container" class="flex-1 overflow-y-auto space-y-3 pb-20">
-                <!-- Dynamic -->
-            </div>
+            <div id="chat-threads-container" class="flex-1 overflow-y-auto space-y-3 pb-20"></div>
         </section>
 
         <!-- VIEW: CHAT ROOM -->
@@ -306,7 +515,6 @@
 
             <div id="chat-messages-area" class="flex-1 overflow-y-auto p-4 space-y-3 bg-gradient-to-b from-brand-black to-brand-dark/20"></div>
 
-            <!-- Quick Tags (Fan Only) -->
             <div id="chat-quick-tags" class="hidden px-3 py-2 border-t border-brand-border bg-brand-dark/50 flex gap-2 overflow-x-auto shrink-0">
                 <button onclick="app.sendTag('I want to become a VIP member!')" class="whitespace-nowrap px-3 py-1.5 rounded-full bg-brand-gold/10 border border-brand-gold/30 text-brand-gold text-[11px] font-semibold">✨ VIP Member</button>
                 <button onclick="app.sendTag('I would like to book a Meet & Greet.')" class="whitespace-nowrap px-3 py-1.5 rounded-full bg-brand-gold/10 border border-brand-gold/30 text-brand-gold text-[11px] font-semibold">🎟️ Meet & Greet</button>
@@ -321,8 +529,8 @@
             </div>
         </section>
 
-        <!-- VIEW: CREATOR STUDIO (Celeb Only) -->
-        <section id="view-studio" class="hidden h-full flex flex-col p-4 space-y-6 overflow-y-auto pb-20">
+        <!-- VIEW: CREATOR STUDIO -->
+        <section id="view-studio" class="hidden h-full flex flex-col p-4 space-y-4 overflow-y-auto pb-20">
             <div>
                 <span class="text-[10px] uppercase font-bold text-brand-gold tracking-widest">Creator Center</span>
                 <h2 class="text-2xl font-bold text-white mt-1">Media Studio</h2>
@@ -331,31 +539,72 @@
             <div class="glass-card p-4 rounded-2xl space-y-3">
                 <h3 class="text-sm font-bold text-brand-gold flex items-center gap-2"><i class="fa-solid fa-music"></i> Upload Song</h3>
                 <input type="text" id="song-title" placeholder="Song Title" class="w-full input-field rounded-xl px-4 py-2.5 text-sm">
-                <input type="text" id="song-duration" placeholder="Duration (e.g. 3:45)" class="w-full input-field rounded-xl px-4 py-2.5 text-sm">
-                <button onclick="app.uploadMedia('song')" class="w-full bg-brand-gold/10 border border-brand-gold text-brand-gold font-bold py-2.5 rounded-xl text-sm hover:bg-brand-gold hover:text-brand-black transition-colors">Upload Track</button>
+                <input type="file" id="song-file" accept="audio/*" class="w-full text-xs text-slate-400 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-brand-gold/10 file:text-brand-gold hover:file:bg-brand-gold/20">
+                <div id="song-preview" class="hidden">
+                    <audio id="song-audio-preview" controls class="w-full h-10"></audio>
+                </div>
+                <button onclick="app.uploadSong()" class="w-full bg-brand-gold/10 border border-brand-gold text-brand-gold font-bold py-2.5 rounded-xl text-sm hover:bg-brand-gold hover:text-brand-black transition-colors">
+                    <i class="fa-solid fa-cloud-arrow-up mr-2"></i>Upload Track
+                </button>
             </div>
 
             <div class="glass-card p-4 rounded-2xl space-y-3">
                 <h3 class="text-sm font-bold text-brand-gold flex items-center gap-2"><i class="fa-solid fa-video"></i> Upload Short Video</h3>
                 <input type="text" id="video-title" placeholder="Video Title" class="w-full input-field rounded-xl px-4 py-2.5 text-sm">
-                <input type="text" id="video-duration" placeholder="Duration (e.g. 0:58)" class="w-full input-field rounded-xl px-4 py-2.5 text-sm">
-                <button onclick="app.uploadMedia('video')" class="w-full bg-brand-gold/10 border border-brand-gold text-brand-gold font-bold py-2.5 rounded-xl text-sm hover:bg-brand-gold hover:text-brand-black transition-colors">Upload Video</button>
+                <input type="file" id="video-file" accept="video/*" class="w-full text-xs text-slate-400 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-brand-gold/10 file:text-brand-gold hover:file:bg-brand-gold/20">
+                <div id="video-preview" class="hidden">
+                    <video id="video-video-preview" controls class="w-full rounded-lg max-h-48"></video>
+                </div>
+                <button onclick="app.uploadVideo()" class="w-full bg-brand-gold/10 border border-brand-gold text-brand-gold font-bold py-2.5 rounded-xl text-sm hover:bg-brand-gold hover:text-brand-black transition-colors">
+                    <i class="fa-solid fa-cloud-arrow-up mr-2"></i>Upload Video
+                </button>
             </div>
         </section>
 
+        <!-- VIEW: EDIT PROFILE -->
+        <section id="view-edit-profile" class="hidden h-full flex flex-col p-6 space-y-4 overflow-y-auto">
+            <button onclick="app.navTo('settings')" class="text-slate-400 hover:text-white flex items-center space-x-2 text-sm">
+                <i class="fa-solid fa-arrow-left"></i> <span>Back</span>
+            </button>
+            
+            <h2 class="text-2xl font-bold text-white">Edit Profile</h2>
+
+            <div class="flex flex-col items-center space-y-2 mb-2">
+                <div class="relative group cursor-pointer" onclick="document.getElementById('edit-avatar').click()">
+                    <img id="edit-avatar-preview" src="" class="w-24 h-24 rounded-full border-2 border-brand-gold object-cover">
+                    <div class="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        <i class="fa-solid fa-camera text-white"></i>
+                    </div>
+                </div>
+                <input type="file" id="edit-avatar" accept="image/*" class="hidden" onchange="app.previewImage(this, 'edit-avatar-preview')">
+            </div>
+
+            <div id="edit-form-container" class="space-y-3 flex-1"></div>
+
+            <button onclick="app.saveProfileEdit()" class="w-full gradient-bg text-brand-black font-bold py-3.5 rounded-xl shadow-lg shadow-brand-gold/20 active:scale-95 transition-transform">
+                Save Changes
+            </button>
+        </section>
+
         <!-- VIEW: SETTINGS -->
-        <section id="view-settings" class="hidden h-full flex flex-col p-4 space-y-6">
+        <section id="view-settings" class="hidden h-full flex flex-col p-4 space-y-4">
             <h2 class="text-2xl font-bold text-white">Settings</h2>
             
             <div class="glass-card rounded-2xl p-4 flex items-center space-x-4">
                 <img id="settings-avatar" src="" class="w-14 h-14 rounded-full border-2 border-brand-gold object-cover">
-                <div>
+                <div class="flex-1">
                     <h3 id="settings-name" class="font-bold text-white text-lg">User</h3>
                     <span id="settings-role" class="text-xs text-brand-gold font-semibold uppercase tracking-wider">FAN</span>
+                    <p id="settings-id" class="text-[10px] text-slate-500 mt-1 font-mono"></p>
                 </div>
+                <button onclick="app.navTo('edit-profile')" class="text-brand-gold hover:text-white"><i class="fa-solid fa-pen-to-square"></i></button>
             </div>
 
             <div class="space-y-2">
+                <button onclick="app.changePIN()" class="w-full glass-card p-4 rounded-xl text-left flex items-center justify-between text-sm text-slate-300 hover:text-white">
+                    <span class="flex items-center gap-3"><i class="fa-solid fa-fingerprint text-brand-gold"></i> Change PIN</span>
+                    <i class="fa-solid fa-chevron-right text-slate-600"></i>
+                </button>
                 <button class="w-full glass-card p-4 rounded-xl text-left flex items-center justify-between text-sm text-slate-300 hover:text-white">
                     <span class="flex items-center gap-3"><i class="fa-solid fa-bell text-brand-gold"></i> Notifications</span>
                     <i class="fa-solid fa-chevron-right text-slate-600"></i>
@@ -371,8 +620,8 @@
             </button>
         </section>
 
-        <!-- VIEW: ADMIN PANEL (Hidden) -->
-        <section id="view-admin" class="hidden h-full flex flex-col p-4 space-y-6 overflow-y-auto pb-20">
+        <!-- VIEW: ADMIN PANEL -->
+        <section id="view-admin" class="hidden h-full flex flex-col p-4 space-y-4 overflow-y-auto pb-20">
             <div class="flex items-center justify-between">
                 <div>
                     <span class="text-[10px] uppercase font-bold text-red-500 tracking-widest">Restricted Access</span>
@@ -403,9 +652,7 @@
     </main>
 
     <!-- Bottom Navigation -->
-    <nav id="bottom-nav" class="bg-brand-dark/95 backdrop-blur-lg border-t border-brand-border px-6 py-3 flex justify-around items-center shrink-0 z-40 max-w-md mx-auto w-full">
-        <!-- Dynamic -->
-    </nav>
+    <nav id="bottom-nav" class="bg-brand-dark/95 backdrop-blur-lg border-t border-brand-border px-6 py-3 flex justify-around items-center shrink-0 z-40 max-w-md mx-auto w-full"></nav>
 
     <!-- Admin Login Modal -->
     <div id="admin-modal" class="hidden fixed inset-0 z-[60] bg-black/90 backdrop-blur-md flex items-center justify-center p-4">
@@ -429,31 +676,243 @@
         <span id="toast-msg">Success</span>
     </div>
 
+    <!-- Hidden Audio Element for Notifications -->
+    <audio id="notif-sound" preload="auto"></audio>
+
     <script>
         const ADMIN_CREDS = { u: 'sys_root_88x', p: 'MyIdol$ecure2024!X9#G0ld' };
 
         const app = {
             state: {
-                user: { role: 'guest', name: '', avatar: '', id: null },
-                celebs: [], // Starts empty, no demo accounts
+                user: null,
+                celebs: [],
+                fans: [],
                 chats: [],
+                notifications: [],
+                currentPIN: null,
+                pinSetupMode: false,
+                pinTemp: '',
                 logoClicks: 0,
                 logoTimer: null
             },
+            currentProfileId: null,
+            currentChatId: null,
+            audioPlayer: new Audio(),
+            isPlaying: false,
+            currentSong: null,
 
             init() {
                 this.loadState();
                 this.setupLogoTrigger();
+                this.setupAudioPreviewListeners();
                 
-                if (this.state.user.role === 'guest') {
+                if (!this.state.user) {
                     this.navTo('auth');
+                } else {
+                    this.checkSecurity();
+                }
+            },
+
+            // --- Security & Auth ---
+            checkSecurity() {
+                if (this.state.user.pin) {
+                    this.navTo('pin-setup');
+                    this.state.pinSetupMode = false;
+                    document.getElementById('pin-setup-msg').innerText = 'Enter your PIN to unlock';
                 } else {
                     this.navTo(this.state.user.role === 'celebrity' ? 'studio' : 'dashboard');
                 }
-                this.updateHeaderRole();
             },
 
-            // --- Navigation & UI ---
+            setupPIN() {
+                this.navTo('pin-setup');
+                this.state.pinSetupMode = true;
+                this.state.pinTemp = '';
+                document.getElementById('pin-setup-msg').innerText = 'Create a 4-digit PIN';
+                this.updatePINDots();
+            },
+
+            changePIN() {
+                this.setupPIN();
+            },
+
+            enterPIN(num) {
+                if (this.state.pinTemp.length >= 4) return;
+                this.state.pinTemp += num;
+                this.updatePINDots();
+                
+                if (this.state.pinTemp.length === 4) {
+                    setTimeout(() => this.processPIN(), 300);
+                }
+            },
+
+            deletePIN() {
+                this.state.pinTemp = this.state.pinTemp.slice(0, -1);
+                this.updatePINDots();
+            },
+
+            clearPIN() {
+                this.state.pinTemp = '';
+                this.updatePINDots();
+            },
+
+            updatePINDots() {
+                const dots = document.querySelectorAll('.pin-dot');
+                dots.forEach((dot, i) => {
+                    dot.classList.toggle('filled', i < this.state.pinTemp.length);
+                });
+            },
+
+            processPIN() {
+                if (this.state.pinSetupMode) {
+                    // Confirm PIN
+                    if (!this.state.pinConfirm) {
+                        this.state.pinConfirm = this.state.pinTemp;
+                        this.state.pinTemp = '';
+                        document.getElementById('pin-setup-msg').innerText = 'Confirm your PIN';
+                        this.updatePINDots();
+                    } else {
+                        if (this.state.pinConfirm === this.state.pinTemp) {
+                            this.state.user.pin = this.state.pinTemp;
+                            this.state.pinConfirm = null;
+                            this.saveState();
+                            this.showToast('PIN set successfully!', 'fa-fingerprint');
+                            this.navTo(this.state.user.role === 'celebrity' ? 'studio' : 'dashboard');
+                        } else {
+                            this.showToast('PINs do not match', 'fa-xmark');
+                            this.state.pinConfirm = null;
+                            this.state.pinTemp = '';
+                            document.getElementById('pin-setup-msg').innerText = 'Create a 4-digit PIN';
+                            this.updatePINDots();
+                        }
+                    }
+                } else {
+                    // Verify PIN
+                    if (this.state.pinTemp === this.state.user.pin) {
+                        this.state.pinTemp = '';
+                        this.updatePINDots();
+                        this.navTo(this.state.user.role === 'celebrity' ? 'studio' : 'dashboard');
+                    } else {
+                        this.showToast('Incorrect PIN', 'fa-xmark');
+                        this.state.pinTemp = '';
+                        this.updatePINDots();
+                    }
+                }
+            },
+
+            generateFanID() {
+                return Math.floor(100000 + Math.random() * 900000).toString();
+            },
+
+            generateCelebCredentials(name) {
+                const username = name.toLowerCase().replace(/\s+/g, '') + '@myidol';
+                const password = 'MyIdol_' + Math.random().toString(36).substring(2, 8) + '!';
+                return { username, password };
+            },
+
+            handleFanSignup(e) {
+                e.preventDefault();
+                const fanID = this.generateFanID();
+                const password = 'Fan_' + Math.random().toString(36).substring(2, 8);
+                
+                const newFan = {
+                    id: fanID,
+                    role: 'fan',
+                    name: document.getElementById('fan-name').value,
+                    avatar: document.getElementById('fan-avatar-preview').src,
+                    age: document.getElementById('fan-age').value,
+                    phone: document.getElementById('fan-phone').value,
+                    location: document.getElementById('fan-location').value,
+                    reason: document.getElementById('fan-reason').value,
+                    password: password,
+                    pin: null
+                };
+                
+                this.state.fans.push(newFan);
+                this.state.user = newFan;
+                this.saveState();
+                
+                document.getElementById('cred-id').innerText = fanID;
+                document.getElementById('cred-pass').innerText = password;
+                this.navTo('credentials');
+            },
+
+            handleCelebSignup(e) {
+                e.preventDefault();
+                const name = document.getElementById('celeb-name').value;
+                const creds = this.generateCelebCredentials(name);
+                
+                const newCeleb = {
+                    id: 'celeb_' + Date.now(),
+                    role: 'celebrity',
+                    name: name,
+                    category: document.getElementById('celeb-category').value,
+                    country: document.getElementById('celeb-country').value,
+                    bio: document.getElementById('celeb-bio').value,
+                    avatar: document.getElementById('celeb-avatar-preview').src,
+                    username: creds.username,
+                    password: creds.password,
+                    followers: 0,
+                    isFollowed: false,
+                    verified: false,
+                    songs: [],
+                    videos: [],
+                    pin: null
+                };
+                
+                this.state.celebs.push(newCeleb);
+                this.state.user = newCeleb;
+                this.saveState();
+                
+                document.getElementById('cred-id').innerText = creds.username;
+                document.getElementById('cred-pass').innerText = creds.password;
+                this.navTo('credentials');
+            },
+
+            skipToDashboard() {
+                this.navTo(this.state.user.role === 'celebrity' ? 'studio' : 'dashboard');
+            },
+
+            copyCred(id) {
+                const text = document.getElementById(id).innerText;
+                navigator.clipboard.writeText(text);
+                this.showToast('Copied to clipboard!', 'fa-copy');
+            },
+
+            handleLogin() {
+                const type = document.getElementById('login-type').value;
+                const id = document.getElementById('login-id').value.trim();
+                const pass = document.getElementById('login-pass').value.trim();
+                
+                if (!id || !pass) {
+                    this.showToast('Fill all fields', 'fa-exclamation-circle');
+                    return;
+                }
+
+                let user = null;
+                if (type === 'fan') {
+                    user = this.state.fans.find(f => f.id === id && f.password === pass);
+                } else {
+                    user = this.state.celebs.find(c => c.username === id && c.password === pass);
+                }
+
+                if (user) {
+                    this.state.user = user;
+                    this.saveState();
+                    this.checkSecurity();
+                } else {
+                    this.showToast('Invalid credentials', 'fa-xmark');
+                }
+            },
+
+            logout() {
+                this.state.user = null;
+                this.saveState();
+                this.navTo('auth');
+                this.showToast('Signed out');
+            },
+
+            // --- Navigation ---
             navTo(viewId) {
                 document.querySelectorAll('main > section').forEach(el => el.classList.add('hidden'));
                 document.getElementById('view-' + viewId).classList.remove('hidden');
@@ -463,13 +922,14 @@
                 if (viewId === 'chat-list') this.renderChatList();
                 if (viewId === 'settings') this.renderSettings();
                 if (viewId === 'admin') this.renderAdmin();
+                if (viewId === 'edit-profile') this.renderEditProfile();
             },
 
             renderNav() {
                 const nav = document.getElementById('bottom-nav');
-                const role = this.state.user.role;
+                const role = this.state.user?.role;
                 
-                if (role === 'guest' || role === 'admin') {
+                if (!role || role === 'admin') {
                     nav.innerHTML = '';
                     return;
                 }
@@ -498,7 +958,7 @@
                 setTimeout(() => t.classList.add('opacity-0', 'pointer-events-none', '-translate-y-4'), 3000);
             },
 
-            // --- Auth Flow ---
+            // --- Profile & Dashboard ---
             previewImage(input, imgId) {
                 if (input.files && input.files[0]) {
                     const reader = new FileReader();
@@ -507,50 +967,6 @@
                 }
             },
 
-            handleFanSignup(e) {
-                e.preventDefault();
-                this.state.user = {
-                    role: 'fan',
-                    id: 'fan_' + Date.now(),
-                    name: document.getElementById('fan-name').value,
-                    avatar: document.getElementById('fan-avatar-preview').src,
-                    location: document.getElementById('fan-location').value
-                };
-                this.saveState();
-                this.showToast('Welcome, ' + this.state.user.name + '!');
-                this.navTo('dashboard');
-            },
-
-            handleCelebSignup(e) {
-                e.preventDefault();
-                const newCeleb = {
-                    id: 'celeb_' + Date.now(),
-                    name: document.getElementById('celeb-name').value,
-                    category: document.getElementById('celeb-category').value,
-                    country: document.getElementById('celeb-country').value,
-                    bio: document.getElementById('celeb-bio').value,
-                    avatar: document.getElementById('celeb-avatar-preview').src,
-                    followers: 0,
-                    isFollowed: false,
-                    verified: false, // Admin must verify
-                    songs: [],
-                    videos: []
-                };
-                this.state.celebs.push(newCeleb);
-                this.state.user = { role: 'celebrity', id: newCeleb.id, name: newCeleb.name, avatar: newCeleb.avatar };
-                this.saveState();
-                this.showToast('Profile Launched!');
-                this.navTo('studio');
-            },
-
-            logout() {
-                this.state.user = { role: 'guest', name: '', avatar: '', id: null };
-                this.saveState();
-                this.navTo('auth');
-                this.showToast('Signed out');
-            },
-
-            // --- Dashboard & Profile ---
             renderDashboard() {
                 const container = document.getElementById('celeb-list-container');
                 document.getElementById('dash-count').innerText = this.state.celebs.length + ' Stars';
@@ -577,7 +993,6 @@
             filterCelebs() {
                 const q = document.getElementById('search-bar').value.toLowerCase();
                 const filtered = this.state.celebs.filter(c => c.name.toLowerCase().includes(q) || c.category.toLowerCase().includes(q));
-                // Re-render logic simplified for brevity, ideally call renderDashboard with filtered list
                 const container = document.getElementById('celeb-list-container');
                 container.innerHTML = filtered.map(c => `
                     <div class="glass-card rounded-2xl p-4 flex items-center space-x-4 cursor-pointer hover:border-brand-gold/30 transition-all" onclick="app.openProfile('${c.id}')">
@@ -619,22 +1034,36 @@
                 const vList = document.getElementById('prof-videos-list');
                 
                 sList.innerHTML = c.songs.length ? c.songs.map(s => `
-                    <div class="flex items-center justify-between bg-brand-dark p-3 rounded-xl border border-brand-border">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-lg bg-brand-gold/10 flex items-center justify-center text-brand-gold"><i class="fa-solid fa-music"></i></div>
-                            <div><p class="text-sm font-bold text-white">${s.title}</p><p class="text-[10px] text-slate-400">${s.duration}</p></div>
+                    <div class="audio-player rounded-xl p-3 flex items-center justify-between">
+                        <div class="flex items-center gap-3 flex-1 min-w-0">
+                            <div class="w-10 h-10 rounded-lg bg-brand-gold/20 flex items-center justify-center text-brand-gold shrink-0">
+                                <i class="fa-solid fa-music"></i>
+                            </div>
+                            <div class="min-w-0">
+                                <p class="text-sm font-bold text-white truncate">${s.title}</p>
+                                <p class="text-[10px] text-slate-400">${s.duration || 'Audio Track'}</p>
+                            </div>
                         </div>
-                        <button class="w-8 h-8 rounded-full bg-brand-gold text-brand-black flex items-center justify-center"><i class="fa-solid fa-play text-xs"></i></button>
+                        <button onclick="app.playSong('${c.id}', '${s.id}')" class="w-10 h-10 rounded-full gradient-bg text-brand-black flex items-center justify-center shrink-0 active:scale-95 transition-transform">
+                            <i class="fa-solid fa-play text-sm"></i>
+                        </button>
                     </div>
                 `).join('') : '<p class="text-center text-slate-500 text-xs py-4">No songs uploaded.</p>';
 
                 vList.innerHTML = c.videos.length ? c.videos.map(v => `
-                    <div class="flex items-center justify-between bg-brand-dark p-3 rounded-xl border border-brand-border">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-lg bg-brand-gold/10 flex items-center justify-center text-brand-gold"><i class="fa-solid fa-video"></i></div>
-                            <div><p class="text-sm font-bold text-white">${v.title}</p><p class="text-[10px] text-slate-400">${v.duration}</p></div>
+                    <div class="glass-card rounded-xl p-3 flex items-center justify-between">
+                        <div class="flex items-center gap-3 flex-1 min-w-0">
+                            <div class="w-10 h-10 rounded-lg bg-brand-gold/20 flex items-center justify-center text-brand-gold shrink-0">
+                                <i class="fa-solid fa-video"></i>
+                            </div>
+                            <div class="min-w-0">
+                                <p class="text-sm font-bold text-white truncate">${v.title}</p>
+                                <p class="text-[10px] text-slate-400">${v.duration || 'Video'}</p>
+                            </div>
                         </div>
-                        <button class="w-8 h-8 rounded-full bg-brand-card text-slate-300 border border-brand-border flex items-center justify-center"><i class="fa-solid fa-play text-xs"></i></button>
+                        <button onclick="app.playVideo('${v.data}')" class="w-10 h-10 rounded-full bg-brand-card text-brand-gold border border-brand-gold/30 flex items-center justify-center shrink-0">
+                            <i class="fa-solid fa-play text-sm"></i>
+                        </button>
                     </div>
                 `).join('') : '<p class="text-center text-slate-500 text-xs py-4">No videos uploaded.</p>';
             },
@@ -656,7 +1085,169 @@
                 }
             },
 
-            // --- Chat System ---
+            // --- Audio Player ---
+            playSong(celebId, songId) {
+                const c = this.state.celebs.find(x => x.id === celebId);
+                const s = c?.songs.find(x => x.id === songId);
+                if (!s || !s.data) {
+                    this.showToast('Song data not available', 'fa-xmark');
+                    return;
+                }
+
+                this.currentSong = { celeb: c, song: s };
+                document.getElementById('player-cover').src = c.avatar;
+                document.getElementById('player-title').innerText = s.title;
+                document.getElementById('player-artist').innerText = c.name;
+                
+                this.audioPlayer.src = s.data;
+                this.audioPlayer.play();
+                this.isPlaying = true;
+                this.updatePlayButton();
+                
+                this.navTo('player');
+                this.playNotificationSound();
+            },
+
+            togglePlayPause() {
+                if (this.isPlaying) {
+                    this.audioPlayer.pause();
+                    this.isPlaying = false;
+                } else {
+                    this.audioPlayer.play();
+                    this.isPlaying = true;
+                }
+                this.updatePlayButton();
+            },
+
+            updatePlayButton() {
+                const btn = document.getElementById('player-play-btn');
+                btn.innerHTML = this.isPlaying ? '<i class="fa-solid fa-pause"></i>' : '<i class="fa-solid fa-play"></i>';
+            },
+
+            seekPlayer(seconds) {
+                this.audioPlayer.currentTime += seconds;
+            },
+
+            setupAudioPreviewListeners() {
+                this.audioPlayer.addEventListener('timeupdate', () => {
+                    const progress = (this.audioPlayer.currentTime / this.audioPlayer.duration) * 100;
+                    document.getElementById('player-progress').style.width = progress + '%';
+                    document.getElementById('player-current-time').innerText = this.formatTime(this.audioPlayer.currentTime);
+                    document.getElementById('player-duration').innerText = this.formatTime(this.audioPlayer.duration);
+                });
+
+                this.audioPlayer.addEventListener('ended', () => {
+                    this.isPlaying = false;
+                    this.updatePlayButton();
+                });
+
+                // Song file preview
+                document.getElementById('song-file').addEventListener('change', (e) => {
+                    if (e.target.files[0]) {
+                        const url = URL.createObjectURL(e.target.files[0]);
+                        document.getElementById('song-audio-preview').src = url;
+                        document.getElementById('song-preview').classList.remove('hidden');
+                    }
+                });
+
+                // Video file preview
+                document.getElementById('video-file').addEventListener('change', (e) => {
+                    if (e.target.files[0]) {
+                        const url = URL.createObjectURL(e.target.files[0]);
+                        document.getElementById('video-video-preview').src = url;
+                        document.getElementById('video-preview').classList.remove('hidden');
+                    }
+                });
+            },
+
+            formatTime(seconds) {
+                if (isNaN(seconds)) return '0:00';
+                const mins = Math.floor(seconds / 60);
+                const secs = Math.floor(seconds % 60);
+                return `${mins}:${secs.toString().padStart(2, '0')}`;
+            },
+
+            // --- Media Upload (Real) ---
+            uploadSong() {
+                const title = document.getElementById('song-title').value.trim();
+                const file = document.getElementById('song-file').files[0];
+                
+                if (!title || !file) {
+                    this.showToast('Fill title and select file', 'fa-exclamation-circle');
+                    return;
+                }
+
+                if (file.size > 5 * 1024 * 1024) {
+                    this.showToast('File too large (max 5MB)', 'fa-xmark');
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const c = this.state.celebs.find(x => x.id === this.state.user.id);
+                    if (c) {
+                        c.songs.push({
+                            id: 'song_' + Date.now(),
+                            title: title,
+                            duration: this.formatTime(document.getElementById('song-audio-preview').duration),
+                            data: e.target.result
+                        });
+                        this.saveState();
+                        this.showToast('Song uploaded!', 'fa-music');
+                        document.getElementById('song-title').value = '';
+                        document.getElementById('song-file').value = '';
+                        document.getElementById('song-preview').classList.add('hidden');
+                        this.playNotificationSound();
+                    }
+                };
+                reader.readAsDataURL(file);
+            },
+
+            uploadVideo() {
+                const title = document.getElementById('video-title').value.trim();
+                const file = document.getElementById('video-file').files[0];
+                
+                if (!title || !file) {
+                    this.showToast('Fill title and select file', 'fa-exclamation-circle');
+                    return;
+                }
+
+                if (file.size > 10 * 1024 * 1024) {
+                    this.showToast('File too large (max 10MB)', 'fa-xmark');
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const c = this.state.celebs.find(x => x.id === this.state.user.id);
+                    if (c) {
+                        c.videos.push({
+                            id: 'video_' + Date.now(),
+                            title: title,
+                            duration: 'Video',
+                            data: e.target.result
+                        });
+                        this.saveState();
+                        this.showToast('Video uploaded!', 'fa-video');
+                        document.getElementById('video-title').value = '';
+                        document.getElementById('video-file').value = '';
+                        document.getElementById('video-preview').classList.add('hidden');
+                        this.playNotificationSound();
+                    }
+                };
+                reader.readAsDataURL(file);
+            },
+
+            playVideo(data) {
+                const videoWindow = window.open('', '_blank');
+                videoWindow.document.write(`
+                    <html><body style="margin:0;background:#000;display:flex;align-items:center;justify-content:center;height:100vh;">
+                    <video src="${data}" controls autoplay style="max-width:100%;max-height:100vh;"></video>
+                    </body></html>
+                `);
+            },
+
+            // --- Chat ---
             startChatFromProfile() {
                 const c = this.state.celebs.find(x => x.id === this.currentProfileId);
                 if (!c) return;
@@ -699,10 +1290,7 @@
                 if (!t) return;
                 document.getElementById('chat-room-avatar').src = t.avatar;
                 document.getElementById('chat-room-name').innerHTML = `${t.name} ${t.verified ? '<i class="fa-solid fa-circle-check text-brand-gold text-xs"></i>' : ''}`;
-                
-                // Show tags only if user is fan
                 document.getElementById('chat-quick-tags').classList.toggle('hidden', this.state.user.role !== 'fan');
-                
                 this.renderMessages(t);
                 this.navTo('chat-room');
                 this.currentChatId = id;
@@ -746,8 +1334,8 @@
                 input.value = '';
                 this.saveState();
                 this.renderMessages(t);
+                this.playNotificationSound();
 
-                // Auto-reply simulation
                 if (sender === 'fan') {
                     setTimeout(() => {
                         t.messages.push({ sender: 'celeb', text: 'Thanks for reaching out! I appreciate the support. ✨', time: 'Now' });
@@ -758,27 +1346,69 @@
                 }
             },
 
-            // --- Studio (Celeb Uploads) ---
-            uploadMedia(type) {
-                const titleId = type === 'song' ? 'song-title' : 'video-title';
-                const durId = type === 'song' ? 'song-duration' : 'video-duration';
-                const title = document.getElementById(titleId).value.trim();
-                const dur = document.getElementById(durId).value.trim();
+            // --- Edit Profile ---
+            renderEditProfile() {
+                const user = this.state.user;
+                document.getElementById('edit-avatar-preview').src = user.avatar;
                 
-                if (!title || !dur) return this.showToast('Fill all fields', 'fa-exclamation-circle');
-
-                const c = this.state.celebs.find(x => x.id === this.state.user.id);
-                if (c) {
-                    if (type === 'song') c.songs.push({ id: Date.now(), title, duration: dur });
-                    else c.videos.push({ id: Date.now(), title, duration: dur });
-                    this.saveState();
-                    this.showToast('Uploaded Successfully!', 'fa-check');
-                    document.getElementById(titleId).value = '';
-                    document.getElementById(durId).value = '';
+                const container = document.getElementById('edit-form-container');
+                if (user.role === 'fan') {
+                    container.innerHTML = `
+                        <input type="text" id="edit-name" value="${user.name}" class="w-full input-field rounded-xl px-4 py-3 text-sm">
+                        <div class="grid grid-cols-2 gap-3">
+                            <input type="number" id="edit-age" value="${user.age}" class="w-full input-field rounded-xl px-4 py-3 text-sm">
+                            <input type="tel" id="edit-phone" value="${user.phone}" class="w-full input-field rounded-xl px-4 py-3 text-sm">
+                        </div>
+                        <input type="text" id="edit-location" value="${user.location}" class="w-full input-field rounded-xl px-4 py-3 text-sm">
+                    `;
+                } else {
+                    container.innerHTML = `
+                        <input type="text" id="edit-name" value="${user.name}" class="w-full input-field rounded-xl px-4 py-3 text-sm">
+                        <select id="edit-category" class="w-full input-field rounded-xl px-4 py-3 text-sm">
+                            <option value="Music" ${user.category === 'Music' ? 'selected' : ''}>Music Artist</option>
+                            <option value="Cinema" ${user.category === 'Cinema' ? 'selected' : ''}>Actor/Actress</option>
+                            <option value="Sports" ${user.category === 'Sports' ? 'selected' : ''}>Athlete</option>
+                            <option value="Fashion" ${user.category === 'Fashion' ? 'selected' : ''}>Model</option>
+                            <option value="Gaming" ${user.category === 'Gaming' ? 'selected' : ''}>Gamer</option>
+                        </select>
+                        <input type="text" id="edit-country" value="${user.country}" class="w-full input-field rounded-xl px-4 py-3 text-sm">
+                        <textarea id="edit-bio" rows="3" class="w-full input-field rounded-xl px-4 py-3 text-sm resize-none">${user.bio}</textarea>
+                    `;
                 }
             },
 
-            // --- Admin & Settings ---
+            saveProfileEdit() {
+                const user = this.state.user;
+                user.avatar = document.getElementById('edit-avatar-preview').src;
+                user.name = document.getElementById('edit-name').value;
+                
+                if (user.role === 'fan') {
+                    user.age = document.getElementById('edit-age').value;
+                    user.phone = document.getElementById('edit-phone').value;
+                    user.location = document.getElementById('edit-location').value;
+                } else {
+                    user.category = document.getElementById('edit-category').value;
+                    user.country = document.getElementById('edit-country').value;
+                    user.bio = document.getElementById('edit-bio').value;
+                    
+                    // Update in celebs array too
+                    const c = this.state.celebs.find(x => x.id === user.id);
+                    if (c) Object.assign(c, user);
+                }
+                
+                this.saveState();
+                this.showToast('Profile updated!', 'fa-check');
+                this.navTo('settings');
+            },
+
+            // --- Settings & Admin ---
+            renderSettings() {
+                document.getElementById('settings-avatar').src = this.state.user.avatar;
+                document.getElementById('settings-name').innerText = this.state.user.name;
+                document.getElementById('settings-role').innerText = this.state.user.role.toUpperCase();
+                document.getElementById('settings-id').innerText = this.state.user.role === 'fan' ? `ID: ${this.state.user.id}` : `@${this.state.user.username}`;
+            },
+
             setupLogoTrigger() {
                 document.getElementById('logo-trigger').addEventListener('click', () => {
                     this.state.logoClicks++;
@@ -793,15 +1423,13 @@
 
             closeAdminModal() {
                 document.getElementById('admin-modal').classList.add('hidden');
-                document.getElementById('admin-user').value = '';
-                document.getElementById('admin-pass').value = '';
             },
 
             attemptAdminLogin() {
                 const u = document.getElementById('admin-user').value;
                 const p = document.getElementById('admin-pass').value;
                 if (u === ADMIN_CREDS.u && p === ADMIN_CREDS.p) {
-                    this.state.user.role = 'admin';
+                    this.state.user = { role: 'admin', name: 'Admin' };
                     this.closeAdminModal();
                     this.navTo('admin');
                     this.showToast('Admin Access Granted', 'fa-shield-halved');
@@ -812,7 +1440,7 @@
 
             renderAdmin() {
                 document.getElementById('admin-stat-celebs').innerText = this.state.celebs.length;
-                document.getElementById('admin-stat-fans').innerText = '1'; // Simplified
+                document.getElementById('admin-stat-fans').innerText = this.state.fans.length;
                 
                 const list = document.getElementById('admin-celeb-list');
                 list.innerHTML = this.state.celebs.map(c => `
@@ -836,35 +1464,62 @@
                 if (c) { c.verified = !c.verified; this.saveState(); this.renderAdmin(); }
             },
 
-            renderSettings() {
-                document.getElementById('settings-avatar').src = this.state.user.avatar;
-                document.getElementById('settings-name').innerText = this.state.user.name;
-                document.getElementById('settings-role').innerText = this.state.user.role;
-            },
-
             switchRole(role) {
-                // Only allow switching if logged in, for testing purposes
-                if (this.state.user.role === 'guest') return;
+                if (this.state.user.role === 'guest' || !this.state.user) return;
                 this.state.user.role = role;
                 this.saveState();
                 this.navTo(role === 'celebrity' ? 'studio' : 'dashboard');
             },
 
-            updateHeaderRole() {
-                document.getElementById('header-role-select').value = this.state.user.role === 'admin' ? 'fan' : this.state.user.role;
+            toggleNotifications() { 
+                this.showToast('No new notifications'); 
             },
 
-            toggleNotifications() { this.showToast('No new notifications'); },
+            // --- Notification Sound (iPhone-style bell) ---
+            playNotificationSound() {
+                try {
+                    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    const oscillator = audioCtx.createOscillator();
+                    const gainNode = audioCtx.createGain();
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioCtx.destination);
+                    
+                    // iPhone notification bell frequency pattern
+                    oscillator.frequency.setValueAtTime(880, audioCtx.currentTime); // A5
+                    oscillator.frequency.exponentialRampToValueAtTime(1320, audioCtx.currentTime + 0.1); // E6
+                    
+                    gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+                    
+                    oscillator.start(audioCtx.currentTime);
+                    oscillator.stop(audioCtx.currentTime + 0.5);
+                } catch (e) {
+                    console.log('Audio play failed:', e);
+                }
+            },
 
             // --- Persistence ---
-            saveState() { localStorage.setItem('myidol_data', JSON.stringify(this.state)); },
+            saveState() { 
+                try {
+                    localStorage.setItem('myidol_data', JSON.stringify(this.state)); 
+                } catch (e) {
+                    console.log('Storage full:', e);
+                    this.showToast('Storage limit reached', 'fa-xmark');
+                }
+            },
             loadState() {
                 const d = localStorage.getItem('myidol_data');
-                if (d) this.state = JSON.parse(d);
+                if (d) {
+                    try {
+                        this.state = JSON.parse(d);
+                    } catch (e) {
+                        console.log('Parse error:', e);
+                    }
+                }
             }
         };
 
-        // Boot
         document.addEventListener('DOMContentLoaded', () => app.init());
     </script>
 </body>
