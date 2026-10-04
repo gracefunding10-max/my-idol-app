@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-brand-black text-slate-100">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MY IDOL - Exclusive Access</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: { black: '#050505', dark: '#0F0F0F', card: '#181818', border: '#2A2A2A', gold: '#D4AF37', goldLight: '#FCD34D', goldDark: '#B45309' }
+                    },
+                    fontFamily: { sans: ['Inter', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: #050505; }
+        ::-webkit-scrollbar-thumb { background: #2A2A2A; border-radius: 2px; }
+        .gradient-text { background: linear-gradient(135deg, #FCD34D 0%, #D4AF37 50%, #B45309 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .gradient-bg { background: linear-gradient(135deg, #D4AF37 0%, #B45309 100%); }
+        .glass-card { background: rgba(24, 24, 24, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(212, 175, 55, 0.1); }
+        .input-field { background: #0F0F0F; border: 1px solid #2A2A2A; color: white; transition: all 0.2s; }
+        .input-field:focus { border-color: #D4AF37; outline: none; }
+        input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        .audio-player { background: linear-gradient(135deg, rgba(212, 175, 55, 0.1) 0%, rgba(180, 83, 9, 0.05) 100%); border: 1px solid rgba(212, 175, 55, 0.2); }
+        .progress-bar { background: #2A2A2A; height: 4px; border-radius: 2px; overflow: hidden; }
+        .progress-fill { background: linear-gradient(90deg, #D4AF37, #FCD34D); height: 100%; transition: width 0.1s linear; }
+        .pin-dot { width: 16px; height: 16px; border-radius: 50%; border: 2px solid #D4AF37; transition: all 0.2s; }
+        .pin-dot.filled { background: #D4AF37; }
+        .loading-spinner { border: 3px solid rgba(212, 175, 55, 0.3); border-top: 3px solid #D4AF37; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="h-full bg-brand-black flex flex-col overflow-hidden">
+
+    <!-- Header -->
+    <header class="bg-brand-dark/90 backdrop-blur-md border-b border-brand-border px-4 py-3 flex items-center justify-between z-40 shrink-0">
+        <div class="flex items-center space-x-2 cursor-pointer" id="logo-trigger">
+            <div class="w-8 h-8 rounded-lg gradient-bg flex items-center justify-center shadow-lg shadow-brand-gold/20">
+                <i class="fa-solid fa-crown text-brand-black text-sm"></i>
+            </div>
+            <span class="font-bold text-lg tracking-wide gradient-text">MY IDOL</span>
+        </div>
+        <div class="flex items-center space-x-3">
+            <button onclick="app.toggleNotifications()" class="relative text-slate-300 hover:text-brand-gold transition-colors">
+                <i class="fa-solid fa-bell text-lg"></i>
+            </button>
+        </div>
+    </header>
+
+    <main id="main-container" class="flex-1 overflow-y-auto relative w-full max-w-md mx-auto bg-brand-black">
+
+        <!-- VIEW: AUTH LANDING -->
+        <section id="view-auth" class="hidden h-full flex flex-col items-center justify-center p-6 space-y-6">
+            <div class="w-24 h-24 rounded-3xl gradient-bg p-1 shadow-2xl shadow-brand-gold/20 mb-2">
+                <div class="w-full h-full bg-brand-dark rounded-[20px] flex items-center justify-center">
+                    <i class="fa-solid fa-crown text-5xl gradient-text"></i>
+                </div>
+            </div>
+            <div class="text-center space-y-2">
+                <h1 class="text-3xl font-extrabold text-white">Welcome to <span class="gradient-text">MY IDOL</span></h1>
+                <p class="text-slate-400 text-sm max-w-xs mx-auto">The exclusive platform where fans connect directly with world-class icons.</p>
+            </div>
+            <div class="w-full space-y-3 max-w-sm">
+                <button onclick="app.navTo('login')" class="w-full gradient-bg text-brand-black font-bold py-3.5 rounded-xl shadow-lg shadow-brand-gold/20 active:scale-95 transition-transform">
+                    <i class="fa-solid fa-right-to-bracket mr-2"></i> Login
+                </button>
+                <button onclick="app.navTo('signup-role')" class="w-full glass-card hover:border-brand-gold/50 rounded-xl py-3.5 text-left px-4 flex items-center justify-center space-x-2 transition-all active:scale-95">
+                    <i class="fa-solid fa-user-plus text-brand-gold"></i>
+                    <span class="font-bold text-white">Create Account</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- VIEW: LOGIN -->
+        <section id="view-login" class="hidden h-full flex flex-col p-6 space-y-6">
+            <button onclick="app.navTo('auth')" class="text-slate-400 hover:text-white flex items-center space-x-2 text-sm"><i class="fa-solid fa-arrow-left"></i> <span>Back</span></button>
+            <div><h2 class="text-2xl font-bold text-white">Login</h2><p class="text-slate-400 text-sm mt-1">Enter your credentials to continue.</p></div>
+            <div class="space-y-4">
+                <div>
+                    <label class="text-xs text-slate-400 mb-1 block">Account Type</label>
+                    <select id="login-type" class="w-full input-field rounded-xl px-4 py-3 text-sm">
+                        <option value="fan">Fan (6-Digit ID)</option>
+                        <option value="celebrity">Celebrity (Username)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="text-xs text-slate-400 mb-1 block">Your ID / Username</label>
+                    <input type="text" id="login-id" placeholder="Enter ID or Username" class="w-full input-field rounded-xl px-4 py-3 text-sm">
+                </div>
+                <div>
+                    <label class="text-xs text-slate-400 mb-1 block">Password</label>
+                    <input type="password" id="login-pass" placeholder="Enter password" class="w-full input-field rounded-xl px-4 py-3 text-sm">
+                </div>
+                <button id="login-btn" onclick="app.handleLogin()" class="w-full gradient-bg text-brand-black font-bold py-3.5 rounded-xl shadow-lg shadow-brand-gold/20 active:scale-95 transition-transform">Login</button>
+            </div>
+        </section>
+
+        <!-- VIEW: SIGNUP ROLE SELECT -->
+        <section id="view-signup-role" class="hidden h-full flex flex-col items-center justify-center p-6 space-y-6">
+            <button onclick="app.navTo('auth')" class="absolute top-6 left-6 text-slate-400 hover:text-white flex items-center space-x-2 text-sm"><i class="fa-solid fa-arrow-left"></i> <span>Back</span></button>
+            <div class="text-center space-y-2"><h2 class="text-2xl font-bold text-white">Create Account</h2><p class="text-slate-400 text-sm">Choose your account type</p></div>
+            <div class="w-full space-y-4 max-w-sm">
+                <button onclick="app.navTo('signup-fan')" class="w-full glass-card hover:border-brand-gold/50 rounded-2xl p-4 text-left flex items-center space-x-4 transition-all group active:scale-95">
+                    <div class="w-12 h-12 rounded-xl bg-brand-gold/10 border border-brand-gold/30 flex items-center justify-center"><i class="fa-solid fa-heart text-brand-gold text-xl"></i></div>
+                    <div class="flex-1"><h3 class="font-bold text-base text-slate-100">Join as Fan</h3><p class="text-xs text-slate-400 mt-0.5">Get your unique Fan ID</p></div>
+                </button>
+                <button onclick="app.navTo('signup-celeb')" class="w-full glass-card hover:border-brand-gold/50 rounded-2xl p-4 text-left flex items-center space-x-4 transition-all group active:scale-95">
+                    <div class="w-12 h-12 rounded-xl bg-brand-gold/10 border border-brand-gold/30 flex items-center justify-center"><i class="fa-solid fa-star text-brand-gold text-xl"></i></div>
+                    <div class="flex-1"><h3 class="font-bold text-base text-slate-100">Join as Celebrity</h3><p class="text-xs text-slate-400 mt-0.5">Get secure credentials</p></div>
+                </button>
+            </div>
+        </section>
+
+        <!-- VIEW: FAN SIGNUP -->
+        <section id="view-signup-fan" class="hidden h-full flex flex-col p-6 space-y-4 overflow-y-auto">
+            <button onclick="app.navTo('signup-role')" class="text-slate-400 hover:text-white flex items-center space-x-2 text-sm"><i class="fa-solid fa-arrow-left"></i> <span>Back</span></button>
+            <div><h2 class="text-2xl font-bold text-white">Create Fan Profile</h2><p class="text-slate-400 text-sm mt-1">You'll receive a unique 6-digit ID.</p></div>
+            <form onsubmit="app.handleFanSignup(event)" class="space-y-3 flex-1">
+                <div class="flex flex-col items-center space-y-2 mb-2">
+                    <div class="relative group cursor-pointer" onclick="document.getElementById('fan-avatar').click()">
+                        <img id="fan-avatar-preview" src="https://ui-avatars.com/api/?name=Fan&background=D4AF37&color=000" class="w-20 h-20 rounded-full border-2 border-brand-gold object-cover">
+                        <div class="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"><i class="fa-solid fa-camera text-white"></i></div>
+                    </div>
+                    <input type="file" id="fan-avatar" accept="image/*" class="hidden" onchange="app.previewImage(this, 'fan-avatar-preview')">
+                </div>
+                <input type="text" id="fan-name" required placeholder="Full Name" class="w-full input-field rounded-xl px-4 py-3 text-sm">
+                <div class="grid grid-cols-2 gap-3">
+                    <input type="number" id="fan-age" required min="13" max="99" placeholder="Age" class="w-full input-field rounded-xl px-4 py-3 text-sm">
+                    <input type="tel" id="fan-phone" required placeholder="Phone" class="w-full input-field rounded-xl px-4 py-3 text-sm">
+                </div>
+                <input type="text" id="fan-location" required placeholder="Location" class="w-full input-field rounded-xl px-4 py-3 text-sm">
+                <select id="fan-reason" required class="w-full input-field rounded-xl px-4 py-3 text-sm">
+                    <option value="" disabled selected>Reason for joining...</option>
+                    <option value="Chat with idols">Chat with idols</option>
+                    <option value="Exclusive updates">Exclusive updates</option>
+                    <option value="VIP Access">VIP Membership</option>
+                </select>
+                <button type="submit" class="w-full gradient-bg text-brand-black font-bold py-3.5 rounded-xl shadow-lg shadow-brand-gold/20 mt-4 active:scale-95 transition-transform">Create Account</button>
+            </form>
+        </section>
+
+        <!-- VIEW: CELEBRITY SIGNUP -->
+        <section id="view-signup-celeb" class="hidden h-full flex flex-col p-6 space-y-4 overflow-y-auto">
+            <button onclick="app.navTo('signup-role')" class="text-slate-400 hover:text-white flex items-center space-x-2 text-sm"><i class="fa-solid fa-arrow-left"></i> <span>Back</span></button>
+            <div><h2 class="text-2xl font-bold text-white">Create Star Profile</h2><p class="text-slate-400 text-sm mt-1">You'll receive secure login credentials.</p></div>
+            <form onsubmit="app.handleCelebSignup(event)" class="space-y-3 flex-1">
+                <div class="flex flex-col items-center space-y-2 mb-2">
+                    <div class="relative group cursor-pointer" onclick="document.getElementById('celeb-avatar').click()">
+                        <img id="celeb-avatar-preview" src="https://ui-avatars.com/api/?name=Star&background=D4AF37&color=000" class="w-20 h-20 rounded-full border-2 border-brand-gold object-cover">
+                        <div class="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"><i class="fa-solid fa-camera text-white"></i></div>
+                    </div>
+                    <input type="file" id="celeb-avatar" accept="image/*" class="hidden" onchange="app.previewImage(this, 'celeb-avatar-preview')">
+                </div>
+                <input type="text" id="celeb-name" required placeholder="Stage Name" class="w-full input-field rounded-xl px-4 py-3 text-sm">
+                <select id="celeb-category" required class="w-full input-field rounded-xl px-4 py-3 text-sm">
+                    <option value="Music">Music Artist</option><option value="Cinema">Actor/Actress</option><option value="Sports">Athlete</option><option value="Fashion">Model</option><option value="Gaming">Gamer</option>
+                </select>
+                <input type="text" id="celeb-country" required placeholder="Country" class="w-full input-field rounded-xl px-4 py-3 text-sm">
+                <textarea id="celeb-bio" rows="3" required placeholder="Public Bio..." class="w-full input-field rounded-xl px-4 py-3 text-sm resize-none"></textarea>
+                <button type="submit" class="w-full gradient-bg text-brand-black font-bold py-3.5 rounded-xl shadow-lg shadow-brand-gold/20 mt-4 active:scale-95 transition-transform">Create Profile</button>
+            </form>
+        </section>
+
+        <!-- VIEW: CREDENTIALS DISPLAY -->
+        <section id="view-credentials" class="hidden h-full flex flex-col items-center justify-center p-6 space-y-6">
+            <div class="w-16 h-16 rounded-full bg-emerald-500/20 border-2 border-emerald-500 flex items-center justify-center"><i class="fa-solid fa-check text-3xl text-emerald-500"></i></div>
+            <div class="text-center space-y-2"><h2 class="text-2xl font-bold text-white">Account Created!</h2><p class="text-slate-400 text-sm">Save these credentials securely. You won't see them again.</p></div>
+            <div class="w-full glass-card rounded-2xl p-5 space-y-4 border-2 border-brand-gold/30">
+                <div><label class="text-[10px] text-slate-400 uppercase tracking-wider">Your Login ID</label><div class="flex items-center justify-between bg-brand-black rounded-xl p-3 mt-1"><span id="cred-id" class="text-xl font-bold text-brand-gold font-mono tracking-wider"></span><button onclick="app.copyCred('cred-id')" class="text-brand-gold hover:text-white"><i class="fa-solid fa-copy"></i></button></div></div>
+                <div><label class="text-[10px] text-slate-400 uppercase tracking-wider">Password</label><div class="flex items-center justify-between bg-brand-black rounded-xl p-3 mt-1"><span id="cred-pass" class="text-sm font-mono text-white"></span><button onclick="app.copyCred('cred-pass')" class="text-brand-gold hover:text-white"><i class="fa-solid fa-copy"></i></button></div></div>
+            </div>
+            <div class="w-full space-y-3">
+                <button onclick="app.setupPIN()" class="w-full gradient-bg text-brand-black font-bold py-3.5 rounded-xl shadow-lg shadow-brand-gold/20 active:scale-95 transition-transform"><i class="fa-solid fa-fingerprint mr-2"></i> Setup Security (PIN)</button>
+                <button onclick="app.skipToDashboard()" class="w-full glass-card text-slate-300 font-semibold py-3 rounded-xl active:scale-95 transition-transform">Skip & Go to Dashboard</button>
+            </div>
+        </section>
+
+        <!-- VIEW: PIN SETUP -->
+        <section id="view-pin-setup" class="hidden h-full flex flex-col items-center justify-center p-6 space-y-8">
+            <div class="text-center space-y-2"><i class="fa-solid fa-shield-halved text-4xl text-brand-gold"></i><h2 class="text-2xl font-bold text-white">Create PIN</h2><p class="text-slate-400 text-sm" id="pin-setup-msg">Enter a 4-digit PIN for quick access</p></div>
+            <div class="flex space-x-3" id="pin-dots-container"><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div></div>
+            <div class="grid grid-cols-3 gap-4 w-full max-w-xs">
+                <button onclick="app.enterPIN(1)" class="w-16 h-16 rounded-full bg-brand-card border border-brand-border text-white text-xl font-bold hover:bg-brand-gold/20 transition-colors">1</button>
+                <button onclick="app.enterPIN(2)" class="w-16 h-16 rounded-full bg-brand-card border border-brand-border text-white text-xl font-bold hover:bg-brand-gold/20 transition-colors">2</button>
+                <button onclick="app.enterPIN(3)" class="w-16 h-16 rounded-full bg-brand-card border border-brand-border text-white text-xl font-bold hover:bg-brand-gold/20 transition-colors">3</button>
+                <button onclick="app.enterPIN(4)" class="w-16 h-16 rounded-full bg-brand-card border border-brand-border text-white text-xl font-bold hover:bg-brand-gold/20 transition-colors">4</button>
+                <button onclick="app.enterPIN(5)" class="w-16 h-16 rounded-full bg-brand-card border border-brand-border text-white text-xl font-bold hover:bg-brand-gold/20 transition-colors">5</button>
+                <button onclick="app.enterPIN(6)" class="w-16 h-16 rounded-full bg-brand-card border border-brand-border text-white text-xl font-bold hover:bg-brand-gold/20 transition-colors">6</button>
+                <button onclick="app.enterPIN(7)" class="w-16 h-16 rounded-full bg-brand-card border border-brand-border text-white text-xl font-bold hover:bg-brand-gold/20 transition-colors">7</button>
+                <button onclick="app.enterPIN(8)" class="w-16 h-16 rounded-full bg-brand-card border border-brand-border text-white text-xl font-bold hover:bg-brand-gold/20 transition-colors">8</button>
+                <button onclick="app.enterPIN(9)" class="w-16 h-16 rounded-full bg-brand-card border border-brand-border text-white text-xl font-bold hover:bg-brand-gold/20 transition-colors">9</button>
+                <button onclick="app.clearPIN()" class="w-16 h-16 rounded-full bg-brand-card border border-brand-border text-slate-400 text-sm font-bold hover:bg-red-900/20 transition-colors">Clear</button>
+                <button onclick="app.enterPIN(0)" class="w-16 h-16 rounded-full bg-brand-card border border-brand-border text-white text-xl font-bold hover:bg-brand-gold/20 transition-colors">0</button>
+                <button onclick="app.deletePIN()" class="w-16 h-16 rounded-full bg-brand-card border border-brand-border text-slate-400 text-sm font-bold hover:bg-brand-gold/20 transition-colors"><i class="fa-solid fa-delete-left"></i></button>
+            </div>
+        </section>
+
+        <!-- VIEW: DASHBOARD -->
+        <section id="view-dashboard" class="hidden h-full flex flex-col p-4 space-y-4">
+            <div class="flex items-center justify-between"><h2 class="text-xl font-bold text-white">Explore Stars</h2><span class="text-xs text-brand-gold font-semibold" id="dash-count">0 Stars</span></div>
+            <div class="relative"><i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i><input type="text" id="search-bar" onkeyup="app.filterCelebs()" placeholder="Search name or category..." class="w-full input-field rounded-xl pl-10 pr-4 py-3 text-sm"></div>
+            <div id="celeb-list-container" class="flex-1 overflow-y-auto space-y-3 pb-20"></div>
+        </section>
+
+        <!-- VIEW: CELEBRITY PROFILE -->
+        <section id="view-profile" class="hidden h-full flex flex-col overflow-y-auto pb-20">
+            <div class="relative h-40 bg-brand-dark"><img id="prof-cover" src="" class="w-full h-full object-cover opacity-50"><button onclick="app.navTo('dashboard')" class="absolute top-4 left-4 w-8 h-8 rounded-full bg-black/60 backdrop-blur text-white flex items-center justify-center"><i class="fa-solid fa-arrow-left"></i></button></div>
+            <div class="px-4 -mt-12 relative z-10">
+                <div class="flex items-end justify-between mb-3"><img id="prof-avatar" src="" class="w-24 h-24 rounded-full border-4 border-brand-black object-cover shadow-xl"><button id="prof-follow-btn" onclick="app.toggleFollow()" class="px-6 py-2 rounded-full font-bold text-sm transition-all">Follow</button></div>
+                <h2 id="prof-name" class="text-2xl font-bold text-white flex items-center gap-2"></h2>
+                <p id="prof-meta" class="text-sm text-brand-gold font-medium mt-1"></p>
+                <p id="prof-bio" class="text-sm text-slate-300 mt-3 leading-relaxed"></p>
+                <div class="flex gap-6 mt-6 py-4 border-y border-brand-border">
+                    <div class="text-center"><p id="prof-followers" class="text-lg font-bold text-white">0</p><p class="text-[10px] text-slate-500 uppercase tracking-wider">Followers</p></div>
+                    <div class="text-center"><p id="prof-songs-count" class="text-lg font-bold text-white">0</p><p class="text-[10px] text-slate-500 uppercase tracking-wider">Songs</p></div>
+                    <div class="text-center"><p id="prof-videos-count" class="text-lg font-bold text-white">0</p><p class="text-[10px] text-slate-500 uppercase tracking-wider">Videos</p></div>
+                </div>
+                <div class="flex border-b border-brand-border mt-6">
+                    <button onclick="app.switchProfTab('songs')" id="tab-btn-songs" class="flex-1 py-3 text-sm font-bold text-brand-gold border-b-2 border-brand-gold">Songs</button>
+                    <button onclick="app.switchProfTab('videos')" id="tab-btn-videos" class="flex-1 py-3 text-sm font-bold text-slate-500 hover:text-white">Videos</button>
+                </div>
+                <div id="prof-songs-list" class="space-y-2 mt-4"></div>
+                <div id="prof-videos-list" class="space-y-2 mt-4 hidden"></div>
+                <button onclick="app.startChatFromProfile()" class="w-full mt-8 gradient-bg text-brand-black font-bold py-3.5 rounded-xl shadow-lg shadow-brand-gold/20 flex items-center justify-center gap-2"><i class="fa-solid fa-paper-plane"></i> Request Chat Access</button>
+            </div>
+        </section>
+
+        <!-- VIEW: AUDIO PLAYER -->
+        <section id="view-player" class="hidden h-full flex flex-col p-6 space-y-6">
+            <button onclick="app.navTo('dashboard')" class="text-slate-400 hover:text-white flex items-center space-x-2 text-sm"><i class="fa-solid fa-arrow-left"></i> <span>Back</span></button>
+            <div class="flex-1 flex flex-col items-center justify-center space-y-6">
+                <img id="player-cover" src="" class="w-64 h-64 rounded-3xl object-cover shadow-2xl shadow-brand-gold/20 border-2 border-brand-gold/30">
+                <div class="text-center space-y-2"><h2 id="player-title" class="text-2xl font-bold text-white">Song Title</h2><p id="player-artist" class="text-sm text-brand-gold">Artist Name</p></div>
+                <div class="w-full space-y-2"><div class="progress-bar w-full"><div id="player-progress" class="progress-fill" style="width: 0%"></div></div><div class="flex justify-between text-[10px] text-slate-400"><span id="player-current-time">0:00</span><span id="player-duration">0:00</span></div></div>
+                <div class="flex items-center justify-center space-x-8">
+                    <button onclick="app.seekPlayer(-10)" class="text-slate-400 hover:text-white text-2xl"><i class="fa-solid fa-rotate-left"></i></button>
+                    <button onclick="app.togglePlayPause()" id="player-play-btn" class="w-16 h-16 rounded-full gradient-bg text-brand-black flex items-center justify-center text-2xl shadow-lg shadow-brand-gold/30 active:scale-95 transition-transform"><i class="fa-solid fa-play"></i></button>
+                    <button onclick="app.seekPlayer(10)" class="text-slate-400 hover:text-white text-2xl"><i class="fa-solid fa-rotate-right"></i></button>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW: CHAT LIST -->
+        <section id="view-chat-list" class="hidden h-full flex flex-col p-4 space-y-4"><h2 class="text-xl font-bold text-white">Messages</h2><div id="chat-threads-container" class="flex-1 overflow-y-auto space-y-3 pb-20"></div></section>
+
+        <!-- VIEW: CHAT ROOM -->
+        <section id="view-chat-room" class="hidden h-full flex flex-col bg-brand-black absolute inset-0 z-50">
+            <div class="bg-brand-dark border-b border-brand-border p-3 flex items-center justify-between shrink-0">
+                <div class="flex items-center space-x-3">
+                    <button onclick="app.navTo('chat-list')" class="text-slate-300 hover:text-white p-1"><i class="fa-solid fa-arrow-left text-lg"></i></button>
+                    <img id="chat-room-avatar" src="" class="w-9 h-9 rounded-full border border-brand-gold object-cover">
+                    <div><h4 id="chat-room-name" class="font-bold text-sm text-white flex items-center gap-1"></h4><span class="text-[10px] text-emerald-400">Online</span></div>
+                </div>
+            </div>
+            <div id="chat-messages-area" class="flex-1 overflow-y-auto p-4 space-y-3 bg-gradient-to-b from-brand-black to-brand-dark/20"></div>
+            <div id="chat-quick-tags" class="hidden px-3 py-2 border-t border-brand-border bg-brand-dark/50 flex gap-2 overflow-x-auto shrink-0">
+                <button onclick="app.sendTag('I want to become a VIP member!')" class="whitespace-nowrap px-3 py-1.5 rounded-full bg-brand-gold/10 border border-brand-gold/30 text-brand-gold text-[11px] font-semibold">✨ VIP Member</button>
+                <button onclick="app.sendTag('I would like to book a Meet & Greet.')" class="whitespace-nowrap px-3 py-1.5 rounded-full bg-brand-gold/10 border border-brand-gold/30 text-brand-gold text-[11px] font-semibold">🎟️ Meet & Greet</button>
+                <button onclick="app.sendTag('How can I get your private contacts?')" class="whitespace-nowrap px-3 py-1.5 rounded-full bg-brand-gold/10 border border-brand-gold/30 text-brand-gold text-[11px] font-semibold">📱 Private Contacts</button>
+            </div>
+            <div class="p-3 border-t border-brand-border bg-brand-dark flex items-center space-x-2 shrink-0">
+                <input type="text" id="chat-input" onkeypress="app.handleChatKey(event)" placeholder="Type a message..." class="flex-1 input-field rounded-xl px-4 py-2.5 text-sm">
+                <button onclick="app.sendMessage()" class="w-10 h-10 rounded-xl gradient-bg text-brand-black flex items-center justify-center shadow-lg"><i class="fa-solid fa-paper-plane text-sm"></i></button>
+            </div>
+        </section>
+
+        <!-- VIEW: CREATOR STUDIO -->
+        <section id="view-studio" class="hidden h-full flex flex-col p-4 space-y-4 overflow-y-auto pb-20">
+            <div><span class="text-[10px] uppercase font-bold text-brand-gold tracking-widest">Creator Center</span><h2 class="text-2xl font-bold text-white mt-1">Media Studio</h2></div>
+            <div class="glass-card p-4 rounded-2xl space-y-3">
+                <h3 class="text-sm font-bold text-brand-gold flex items-center gap-2"><i class="fa-solid fa-music"></i> Upload Song</h3>
+                <input type="text" id="song-title" placeholder="Song Title" class="w-full input-field rounded-xl px-4 py-2.5 text-sm">
+                <input type="file" id="song-file" accept="audio/*" class="w-full text-xs text-slate-400 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-brand-gold/10 file:text-brand-gold hover:file:bg-brand-gold/20">
+                <button id="upload-song-btn" onclick="app.uploadSong()" class="w-full bg-brand-gold/10 border border-brand-gold text-brand-gold font-bold py-2.5 rounded-xl text-sm hover:bg-brand-gold hover:text-brand-black transition-colors"><i class="fa-solid fa-cloud-arrow-up mr-2"></i>Upload Track</button>
+            </div>
+            <div class="glass-card p-4 rounded-2xl space-y-3">
+                <h3 class="text-sm font-bold text-brand-gold flex items-center gap-2"><i class="fa-solid fa-video"></i> Upload Short Video</h3>
+                <input type="text" id="video-title" placeholder="Video Title" class="w-full input-field rounded-xl px-4 py-2.5 text-sm">
+                <input type="file" id="video-file" accept="video/*" class="w-full text-xs text-slate-400 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-brand-gold/10 file:text-brand-gold hover:file:bg-brand-gold/20">
+                <button id="upload-video-btn" onclick="app.uploadVideo()" class="w-full bg-brand-gold/10 border border-brand-gold text-brand-gold font-bold py-2.5 rounded-xl text-sm hover:bg-brand-gold hover:text-brand-black transition-colors"><i class="fa-solid fa-cloud-arrow-up mr-2"></i>Upload Video</button>
+            </div>
+        </section>
+
+        <!-- VIEW: EDIT PROFILE -->
+        <section id="view-edit-profile" class="hidden h-full flex flex-col p-6 space-y-4 overflow-y-auto">
+            <button onclick="app.navTo('settings')" class="text-slate-400 hover:text-white flex items-center space-x-2 text-sm"><i class="fa-solid fa-arrow-left"></i> <span>Back</span></button>
+            <h2 class="text-2xl font-bold text-white">Edit Profile</h2>
+            <div class="flex flex-col items-center space-y-2 mb-2">
+                <div class="relative group cursor-pointer" onclick="document.getElementById('edit-avatar').click()">
+                    <img id="edit-avatar-preview" src="" class="w-24 h-24 rounded-full border-2 border-brand-gold object-cover">
+                    <div class="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"><i class="fa-solid fa-camera text-white"></i></div>
+                </div>
+                <input type="file" id="edit-avatar" accept="image/*" class="hidden" onchange="app.previewImage(this, 'edit-avatar-preview')">
+            </div>
+            <div id="edit-form-container" class="space-y-3 flex-1"></div>
+            <button onclick="app.saveProfileEdit()" class="w-full gradient-bg text-brand-black font-bold py-3.5 rounded-xl shadow-lg shadow-brand-gold/20 active:scale-95 transition-transform">Save Changes</button>
+        </section>
+
+        <!-- VIEW: SETTINGS -->
+        <section id="view-settings" class="hidden h-full flex flex-col p-4 space-y-4">
+            <h2 class="text-2xl font-bold text-white">Settings</h2>
+            <div class="glass-card rounded-2xl p-4 flex items-center space-x-4">
+                <img id="settings-avatar" src="" class="w-14 h-14 rounded-full border-2 border-brand-gold object-cover">
+                <div class="flex-1"><h3 id="settings-name" class="font-bold text-white text-lg">User</h3><span id="settings-role" class="text-xs text-brand-gold font-semibold uppercase tracking-wider">FAN</span><p id="settings-id" class="text-[10px] text-slate-500 mt-1 font-mono"></p></div>
+                <button onclick="app.navTo('edit-profile')" class="text-brand-gold hover:text-white"><i class="fa-solid fa-pen-to-square"></i></button>
+            </div>
+            <div class="space-y-2">
+                <button onclick="app.changePIN()" class="w-full glass-card p-4 rounded-xl text-left flex items-center justify-between text-sm text-slate-300 hover:text-white"><span class="flex items-center gap-3"><i class="fa-solid fa-fingerprint text-brand-gold"></i> Change PIN</span><i class="fa-solid fa-chevron-right text-slate-600"></i></button>
+            </div>
+            <button onclick="app.logout()" class="w-full bg-red-950/20 border border-red-900/50 text-red-400 font-bold py-3.5 rounded-xl mt-auto flex items-center justify-center gap-2 hover:bg-red-900/30 transition-colors"><i class="fa-solid fa-right-from-bracket"></i> Sign Out</button>
+        </section>
+
+        <!-- VIEW: ADMIN PANEL -->
+        <section id="view-admin" class="hidden h-full flex flex-col p-4 space-y-4 overflow-y-auto pb-20">
+            <div class="flex items-center justify-between"><div><span class="text-[10px] uppercase font-bold text-red-500 tracking-widest">Restricted Access</span><h2 class="text-2xl font-bold text-white mt-1">Admin Control</h2></div><div class="w-10 h-10 rounded-full bg-red-900/20 border border-red-500/30 flex items-center justify-center text-red-500"><i class="fa-solid fa-shield-halved"></i></div></div>
+            <div class="grid grid-cols-2 gap-3"><div class="glass-card p-4 rounded-2xl border-l-4 border-l-brand-gold"><p class="text-[10px] text-slate-400 uppercase font-bold">Total Stars</p><h3 id="admin-stat-celebs" class="text-2xl font-bold text-white mt-1">0</h3></div><div class="glass-card p-4 rounded-2xl border-l-4 border-l-brand-gold"><p class="text-[10px] text-slate-400 uppercase font-bold">Total Fans</p><h3 id="admin-stat-fans" class="text-2xl font-bold text-white mt-1">0</h3></div></div>
+            <div class="space-y-3"><h3 class="text-sm font-bold text-slate-200 uppercase tracking-wider">Manage Celebrities</h3><div id="admin-celeb-list" class="space-y-2"></div></div>
+        </section>
+    </main>
+
+    <nav id="bottom-nav" class="bg-brand-dark/95 backdrop-blur-lg border-t border-brand-border px-6 py-3 flex justify-around items-center shrink-0 z-40 max-w-md mx-auto w-full"></nav>
+
+    <div id="admin-modal" class="hidden fixed inset-0 z-[60] bg-black/90 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="bg-brand-card border border-brand-gold/30 rounded-2xl p-6 w-full max-w-sm space-y-4 shadow-2xl">
+            <div class="text-center"><i class="fa-solid fa-lock text-3xl text-brand-gold mb-2"></i><h3 class="text-brand-gold font-bold text-lg">Admin Access</h3></div>
+            <input type="text" id="admin-user" placeholder="Username" class="w-full input-field rounded-xl px-4 py-3 text-sm">
+            <input type="password" id="admin-pass" placeholder="Password" class="w-full input-field rounded-xl px-4 py-3 text-sm">
+            <div class="flex gap-3 pt-2"><button onclick="app.closeAdminModal()" class="flex-1 py-3 rounded-xl text-slate-400 hover:text-white text-sm font-semibold border border-brand-border">Cancel</button><button onclick="app.attemptAdminLogin()" class="flex-1 gradient-bg text-brand-black font-bold py-3 rounded-xl text-sm">Login</button></div>
+        </div>
+    </div>
+
+    <div id="toast" class="fixed top-20 left-1/2 -translate-x-1/2 bg-brand-card border border-brand-gold text-white px-4 py-3 rounded-full text-sm z-[70] shadow-xl transition-all duration-300 opacity-0 pointer-events-none transform -translate-y-4 flex items-center gap-2">
+        <i id="toast-icon" class="fa-solid fa-circle-check text-brand-gold"></i><span id="toast-msg">Success</span>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://nulnqekcmnpgsrtvomay.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im51bG5xZWtjbW5wZ3NydHZvbWF5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEwNjIwMzAsImV4cCI6MjEwNjYzODAzMH0._wAsXL0PREMP9s0BAPwWHyOSRw7rk1XLm4EN3NMRfb0';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        const ADMIN_CREDS = { u: 'sys_root_88x', p: 'MyIdol$ecure2024!X9#G0ld' };
+
+        // FIX: escape helper so user-entered text can't break markup or inject HTML
+        function escapeHtml(str) {
+            return String(str ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+        }
+
+        const app = {
+            state: { user: null, celebs: [], chats: [], pinTemp: '', pinConfirm: null, pinSetupMode: false, logoClicks: 0, logoTimer: null },
+            currentProfileId: null, currentChatId: null, currentOtherId: null, audioPlayer: new Audio(), isPlaying: false,
+
+            async init() {
+                this.setupLogoTrigger();
+                this.setupAudioListeners();
+
+                // FIX: await seeding before navigating so first load isn't empty
+                await this.seedDatabase();
+
+                const savedUser = localStorage.getItem('myidol_current_user');
+                if (savedUser) {
+                    try { this.state.user = JSON.parse(savedUser); } catch (e) { localStorage.removeItem('myidol_current_user'); }
+                }
+                if (this.state.user) {
+                    this.checkSecurity();
+                } else {
+                    this.navTo('auth');
+                }
+            },
+
+            async seedDatabase() {
+                const { count, error } = await supabase.from('celebs').select('*', { count: 'exact', head: true });
+                if (error || count === null || count > 0) return;
+                const seeds = [
+                    { name: 'Aria Star', category: 'Music', country: 'USA', bio: 'Multi-platinum pop icon.', avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400', followers: 48200, verified: true, songs: [], videos: [], username: 'aria', password: 'aria123', pin: null },
+                    { name: 'Marcus Speed', category: 'Sports', country: 'UK', bio: 'Formula 1 Racer.', avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400', followers: 27900, verified: true, songs: [], videos: [], username: 'marcus', password: 'marcus123', pin: null },
+                    { name: 'Elena Rostova', category: 'Cinema', country: 'France', bio: 'Award-winning actress.', avatar: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=400', followers: 31400, verified: true, songs: [], videos: [], username: 'elena', password: 'elena123', pin: null }
+                ];
+                await supabase.from('celebs').insert(seeds);
+            },
+
+            checkSecurity() {
+                this.state.pinTemp = ''; this.state.pinConfirm = null; this.updatePINDots();
+                if (this.state.user?.pin) {
+                    this.state.pinSetupMode = false;
+                    this.navTo('pin-setup');
+                    document.getElementById('pin-setup-msg').innerText = 'Enter your PIN to unlock';
+                } else {
+                    this.navTo(this.state.user.role === 'celebrity' ? 'studio' : 'dashboard');
+                }
+            },
+
+            setupPIN() { this.navTo('pin-setup'); this.state.pinSetupMode = true; this.state.pinTemp = ''; this.state.pinConfirm = null; document.getElementById('pin-setup-msg').innerText = 'Create a 4-digit PIN'; this.updatePINDots(); },
+            changePIN() { this.setupPIN(); },
+            enterPIN(num) { if (this.state.pinTemp.length >= 4) return; this.state.pinTemp += num; this.updatePINDots(); if (this.state.pinTemp.length === 4) setTimeout(() => this.processPIN(), 300); },
+            deletePIN() { this.state.pinTemp = this.state.pinTemp.slice(0, -1); this.updatePINDots(); },
+            clearPIN() { this.state.pinTemp = ''; this.updatePINDots(); },
+            updatePINDots() { document.querySelectorAll('.pin-dot').forEach((dot, i) => dot.classList.toggle('filled', i < this.state.pinTemp.length)); },
+
+            async processPIN() {
+                if (this.state.pinSetupMode) {
+                    if (!this.state.pinConfirm) {
+                        this.state.pinConfirm = this.state.pinTemp; this.state.pinTemp = '';
+                        document.getElementById('pin-setup-msg').innerText = 'Confirm your PIN'; this.updatePINDots();
+                    } else {
+                        if (this.state.pinConfirm === this.state.pinTemp) {
+                            const table = this.state.user.role === 'fan' ? 'fans' : 'celebs';
+                            const { error } = await supabase.from(table).update({ pin: this.state.pinTemp }).eq('id', this.state.user.id);
+                            if (error) { this.showToast('Could not save PIN: ' + error.message, 'fa-xmark'); return; }
+                            this.state.user.pin = this.state.pinTemp; this.state.pinConfirm = null;
+                            this.saveSession();
+                            this.showToast('PIN set successfully!', 'fa-fingerprint');
+                            this.navTo(this.state.user.role === 'celebrity' ? 'studio' : 'dashboard');
+                        } else {
+                            this.showToast('PINs do not match', 'fa-xmark'); this.state.pinConfirm = null; this.state.pinTemp = '';
+                            document.getElementById('pin-setup-msg').innerText = 'Create a 4-digit PIN'; this.updatePINDots();
+                        }
+                    }
+                } else {
+                    if (this.state.pinTemp === this.state.user.pin) {
+                        this.state.pinTemp = ''; this.updatePINDots();
+                        this.navTo(this.state.user.role === 'celebrity' ? 'studio' : 'dashboard');
+                    } else { this.showToast('Incorrect PIN', 'fa-xmark'); this.state.pinTemp = ''; this.updatePINDots(); }
+                }
+            },
+
+            generateFanID() { return Math.floor(100000 + Math.random() * 900000).toString(); },
+
+            async handleFanSignup(e) {
+                e.preventDefault();
+                const btn = e.target.querySelector('button[type="submit"]'); btn.innerHTML = '<div class="loading-spinner mx-auto"></div>'; btn.disabled = true;
+                try {
+                    const fanID = this.generateFanID();
+                    const password = 'Fan_' + Math.random().toString(36).substring(2, 8);
+                    const avatar = document.getElementById('fan-avatar-preview').src;
+
+                    const fanData = {
+                        fan_id: fanID, name: document.getElementById('fan-name').value, avatar,
+                        age: parseInt(document.getElementById('fan-age').value),
+                        phone: document.getElementById('fan-phone').value,
+                        location: document.getElementById('fan-location').value,
+                        reason: document.getElementById('fan-reason').value, password, pin: null
+                    };
+
+                    const { data, error } = await supabase.from('fans').insert(fanData).select().single();
+                    if (error) throw error;
+
+                    this.state.user = { ...data, role: 'fan' };
+                    this.saveSession();
+                    document.getElementById('cred-id').innerText = fanID; document.getElementById('cred-pass').innerText = password;
+                    this.navTo('credentials');
+                } catch (err) { this.showToast('Error: ' + err.message, 'fa-xmark'); }
+                btn.innerHTML = 'Create Account'; btn.disabled = false;
+            },
+
+            async handleCelebSignup(e) {
+                e.preventDefault();
+                const btn = e.target.querySelector('button[type="submit"]'); btn.innerHTML = '<div class="loading-spinner mx-auto"></div>'; btn.disabled = true;
+                try {
+                    const name = document.getElementById('celeb-name').value;
+                    const username = name.toLowerCase().replace(/\s+/g, '');
+                    const password = 'MyIdol_' + Math.random().toString(36).substring(2, 8) + '!';
+                    const avatar = document.getElementById('celeb-avatar-preview').src;
+
+                    const celebData = {
+                        name, username, category: document.getElementById('celeb-category').value,
+                        country: document.getElementById('celeb-country').value,
+                        bio: document.getElementById('celeb-bio').value, avatar, password,
+                        followers: 0, verified: false, songs: [], videos: [], pin: null
+                    };
+
+                    const { data, error } = await supabase.from('celebs').insert(celebData).select().single();
+                    if (error) throw error;
+
+                    this.state.user = { ...data, role: 'celebrity' };
+                    this.saveSession();
+                    document.getElementById('cred-id').innerText = username; document.getElementById('cred-pass').innerText = password;
+                    this.navTo('credentials');
+                } catch (err) { this.showToast('Error: ' + err.message, 'fa-xmark'); }
+                btn.innerHTML = 'Create Profile'; btn.disabled = false;
+            },
+
+            skipToDashboard() { this.navTo(this.state.user.role === 'celebrity' ? 'studio' : 'dashboard'); },
+            copyCred(id) { navigator.clipboard.writeText(document.getElementById(id).innerText); this.showToast('Copied!', 'fa-copy'); },
+            saveSession() { localStorage.setItem('myidol_current_user', JSON.stringify(this.state.user)); },
+
+            async handleLogin() {
+                const type = document.getElementById('login-type').value;
+                const id = document.getElementById('login-id').value.trim();
+                const pass = document.getElementById('login-pass').value.trim();
+                if (!id || !pass) return this.showToast('Fill all fields', 'fa-xmark');
+
+                const btn = document.getElementById('login-btn'); btn.innerHTML = '<div class="loading-spinner mx-auto"></div>'; btn.disabled = true;
+                try {
+                    const table = type === 'fan' ? 'fans' : 'celebs';
+                    const column = type === 'fan' ? 'fan_id' : 'username';
+
+                    const { data, error } = await supabase.from(table).select('*').eq(column, id).eq('password', pass).single();
+                    if (error || !data) throw new Error('Invalid credentials');
+
+                    this.state.user = { ...data, role: type };
+                    this.saveSession();
+                    this.checkSecurity();
+                } catch (err) { this.showToast('Invalid credentials', 'fa-xmark'); }
+                btn.innerHTML = 'Login'; btn.disabled = false;
+            },
+
+            // FIX: stop playback and reset the player on sign-out
+            logout() {
+                this.audioPlayer.pause(); this.audioPlayer.removeAttribute('src'); this.audioPlayer.load();
+                this.isPlaying = false; this.updatePlayButton();
+                this.state.user = null; this.state.chats = []; this.currentChatId = null;
+                localStorage.removeItem('myidol_current_user');
+                this.navTo('auth'); this.showToast('Signed out');
+            },
+
+            navTo(viewId) {
+                document.querySelectorAll('main > section').forEach(el => el.classList.add('hidden'));
+                document.getElementById('view-' + viewId).classList.remove('hidden');
+                document.getElementById('main-container').scrollTop = 0;
+                this.renderNav();
+                if (viewId === 'dashboard') this.loadCelebs();
+                if (viewId === 'chat-list') this.loadChats();
+                if (viewId === 'settings') this.renderSettings();
+                if (viewId === 'admin') this.renderAdmin();
+                if (viewId === 'edit-profile') this.renderEditProfile();
+            },
+
+            renderNav() {
+                const nav = document.getElementById('bottom-nav'); const role = this.state.user?.role;
+                if (!role || role === 'admin') { nav.innerHTML = ''; return; }
+                if (role === 'fan') {
+                    nav.innerHTML = `<button onclick="app.navTo('dashboard')" class="flex flex-col items-center text-brand-gold"><i class="fa-solid fa-compass text-lg"></i><span class="text-[10px] mt-1">Explore</span></button><button onclick="app.navTo('chat-list')" class="flex flex-col items-center text-slate-400 hover:text-white"><i class="fa-solid fa-message text-lg"></i><span class="text-[10px] mt-1">Chats</span></button><button onclick="app.navTo('settings')" class="flex flex-col items-center text-slate-400 hover:text-white"><i class="fa-solid fa-gear text-lg"></i><span class="text-[10px] mt-1">Settings</span></button>`;
+                } else {
+                    nav.innerHTML = `<button onclick="app.navTo('dashboard')" class="flex flex-col items-center text-slate-400 hover:text-white"><i class="fa-solid fa-compass text-lg"></i><span class="text-[10px] mt-1">Explore</span></button><button onclick="app.navTo('studio')" class="flex flex-col items-center text-brand-gold"><i class="fa-solid fa-cloud-arrow-up text-lg"></i><span class="text-[10px] mt-1">Studio</span></button><button onclick="app.navTo('chat-list')" class="flex flex-col items-center text-slate-400 hover:text-white"><i class="fa-solid fa-message text-lg"></i><span class="text-[10px] mt-1">Chats</span></button><button onclick="app.navTo('settings')" class="flex flex-col items-center text-slate-400 hover:text-white"><i class="fa-solid fa-gear text-lg"></i><span class="text-[10px] mt-1">Settings</span></button>`;
+                }
+            },
+
+            showToast(msg, icon = 'fa-circle-check') {
+                const t = document.getElementById('toast'); document.getElementById('toast-msg').innerText = msg; document.getElementById('toast-icon').className = `fa-solid ${icon} text-brand-gold`;
+                t.classList.remove('opacity-0', 'pointer-events-none', '-translate-y-4'); setTimeout(() => t.classList.add('opacity-0', 'pointer-events-none', '-translate-y-4'), 3000);
+            },
+
+            previewImage(input, imgId) { if (input.files && input.files[0]) { const reader = new FileReader(); reader.onload = e => document.getElementById(imgId).src = e.target.result; reader.readAsDataURL(input.files[0]); } },
+
+            async loadCelebs() {
+                const { data, error } = await supabase.from('celebs').select('*').order('followers', { ascending: false });
+                if (!error) {
+                    this.state.celebs = data || [];
+                    this.renderDashboard();
+                }
+            },
+
+            // FIX: single shared card renderer used by both dashboard and search
+            celebCard(c) {
+                return `
+                    <div class="glass-card rounded-2xl p-4 flex items-center space-x-4 cursor-pointer hover:border-brand-gold/30 transition-all" onclick="app.openProfile('${c.id}')">
+                        <img src="${escapeHtml(c.avatar)}" class="w-14 h-14 rounded-full border-2 border-brand-gold object-cover">
+                        <div class="flex-1 min-w-0"><h3 class="font-bold text-white flex items-center gap-1 truncate">${escapeHtml(c.name)} ${c.verified ? '<i class="fa-solid fa-circle-check text-brand-gold text-xs"></i>' : ''}</h3><p class="text-xs text-slate-400 truncate">${escapeHtml(c.category)} • ${((c.followers || 0) / 1000).toFixed(1)}k fans</p></div>
+                        <button class="px-4 py-2 rounded-xl gradient-bg text-brand-black text-xs font-bold">View</button>
+                    </div>`;
+            },
+
+            renderDashboard() {
+                const container = document.getElementById('celeb-list-container');
+                document.getElementById('dash-count').innerText = this.state.celebs.length + ' Stars';
+                if (this.state.celebs.length === 0) { container.innerHTML = `<div class="text-center text-slate-500 mt-20"><i class="fa-solid fa-star text-4xl mb-4 text-brand-gold/20"></i><p class="text-sm">No celebrities yet.</p></div>`; return; }
+                container.innerHTML = this.state.celebs.map(c => this.celebCard(c)).join('');
+            },
+
+            filterCelebs() {
+                const q = document.getElementById('search-bar').value.toLowerCase();
+                const filtered = this.state.celebs.filter(c => (c.name || '').toLowerCase().includes(q) || (c.category || '').toLowerCase().includes(q));
+                const container = document.getElementById('celeb-list-container');
+                container.innerHTML = filtered.length
+                    ? filtered.map(c => this.celebCard(c)).join('')
+                    : '<p class="text-center text-slate-500 text-sm py-8">No matches found.</p>';
+            },
+
+            openProfile(id) {
+                const c = this.state.celebs.find(x => x.id === id); if (!c) return;
+                this.currentProfileId = id;
+                document.getElementById('prof-cover').src = c.avatar; document.getElementById('prof-avatar').src = c.avatar;
+                document.getElementById('prof-name').innerHTML = `${escapeHtml(c.name)} ${c.verified ? '<i class="fa-solid fa-circle-check text-brand-gold text-lg"></i>' : ''}`;
+                document.getElementById('prof-meta').innerText = `${c.category} • ${c.country}`; document.getElementById('prof-bio').innerText = c.bio;
+                document.getElementById('prof-followers').innerText = ((c.followers || 0) / 1000).toFixed(1) + 'k';
+                document.getElementById('prof-songs-count').innerText = (c.songs || []).length; document.getElementById('prof-videos-count').innerText = (c.videos || []).length;
+                const btn = document.getElementById('prof-follow-btn');
+                btn.innerText = c.isFollowed ? 'Following' : 'Follow';
+                btn.className = c.isFollowed ? 'px-6 py-2 rounded-full font-bold text-sm bg-brand-card text-slate-300 border border-brand-border' : 'px-6 py-2 rounded-full font-bold text-sm gradient-bg text-brand-black shadow-lg';
+                this.renderProfMedia(c); this.navTo('profile');
+            },
+
+            renderProfMedia(c) {
+                const sList = document.getElementById('prof-songs-list'); const vList = document.getElementById('prof-videos-list');
+                const songs = c.songs || []; const videos = c.videos || [];
+                sList.innerHTML = songs.length ? songs.map(s => `
+                    <div class="audio-player rounded-xl p-3 flex items-center justify-between">
+                        <div class="flex items-center gap-3 flex-1 min-w-0"><div class="w-10 h-10 rounded-lg bg-brand-gold/20 flex items-center justify-center text-brand-gold shrink-0"><i class="fa-solid fa-music"></i></div><div class="min-w-0"><p class="text-sm font-bold text-white truncate">${escapeHtml(s.title)}</p><p class="text-[10px] text-slate-400">${escapeHtml(s.duration || 'Audio Track')}</p></div></div>
+                        <button onclick="app.playSong('${c.id}', '${s.id}')" class="w-10 h-10 rounded-full gradient-bg text-brand-black flex items-center justify-center shrink-0 active:scale-95 transition-transform"><i class="fa-solid fa-play text-sm"></i></button>
+                    </div>
+                `).join('') : '<p class="text-center text-slate-500 text-xs py-4">No songs uploaded.</p>';
+                vList.innerHTML = videos.length ? videos.map(v => `
+                    <div class="glass-card rounded-xl p-3 flex items-center justify-between">
+                        <div class="flex items-center gap-3 flex-1 min-w-0"><div class="w-10 h-10 rounded-lg bg-brand-gold/20 flex items-center justify-center text-brand-gold shrink-0"><i class="fa-solid fa-video"></i></div><div class="min-w-0"><p class="text-sm font-bold text-white truncate">${escapeHtml(v.title)}</p><p class="text-[10px] text-slate-400">${escapeHtml(v.duration || 'Video')}</p></div></div>
+                        <button onclick="app.playVideo('${v.url}')" class="w-10 h-10 rounded-full bg-brand-card text-brand-gold border border-brand-gold/30 flex items-center justify-center shrink-0"><i class="fa-solid fa-play text-sm"></i></button>
+                    </div>
+                `).join('') : '<p class="text-center text-slate-500 text-xs py-4">No videos uploaded.</p>';
+            },
+
+            switchProfTab(tab) {
+                document.getElementById('prof-songs-list').classList.toggle('hidden', tab !== 'songs'); document.getElementById('prof-videos-list').classList.toggle('hidden', tab !== 'videos');
+                document.getElementById('tab-btn-songs').className = tab === 'songs' ? 'flex-1 py-3 text-sm font-bold text-brand-gold border-b-2 border-brand-gold' : 'flex-1 py-3 text-sm font-bold text-slate-500';
+                document.getElementById('tab-btn-videos').className = tab === 'videos' ? 'flex-1 py-3 text-sm font-bold text-brand-gold border-b-2 border-brand-gold' : 'flex-1 py-3 text-sm font-bold text-slate-500';
+            },
+
+            // FIX: update the local celeb object so the button/count actually change
+            async toggleFollow() {
+                const c = this.state.celebs.find(x => x.id === this.currentProfileId); if (!c) return;
+                const newFollowed = !c.isFollowed;
+                const newFollowers = Math.max(0, (c.followers || 0) + (newFollowed ? 1 : -1));
+                const { error } = await supabase.from('celebs').update({ isFollowed: newFollowed, followers: newFollowers }).eq('id', c.id);
+                if (error) return this.showToast('Could not update: ' + error.message, 'fa-xmark');
+                c.isFollowed = newFollowed; c.followers = newFollowers;
+                this.openProfile(this.currentProfileId);
+                this.renderDashboard();
+            },
+
+            playSong(celebId, songId) {
+                const c = this.state.celebs.find(x => x.id === celebId); if (!c) return;
+                const s = (c.songs || []).find(x => x.id === songId);
+                if (!s || !s.url) return this.showToast('Song unavailable', 'fa-xmark');
+                document.getElementById('player-cover').src = c.avatar; document.getElementById('player-title').innerText = s.title; document.getElementById('player-artist').innerText = c.name;
+                document.getElementById('player-progress').style.width = '0%';
+                this.audioPlayer.src = s.url;
+                this.audioPlayer.play().catch(() => this.showToast('Playback failed', 'fa-xmark'));
+                this.isPlaying = true; this.updatePlayButton(); this.navTo('player');
+            },
+
+            togglePlayPause() {
+                if (!this.audioPlayer.src) return;
+                this.isPlaying ? this.audioPlayer.pause() : this.audioPlayer.play();
+                this.isPlaying = !this.isPlaying; this.updatePlayButton();
+            },
+            updatePlayButton() { document.getElementById('player-play-btn').innerHTML = this.isPlaying ? '<i class="fa-solid fa-pause"></i>' : '<i class="fa-solid fa-play"></i>'; },
+            // FIX: clamp seek so currentTime stays within [0, duration]
+            seekPlayer(seconds) {
+                if (!this.audioPlayer.src || isNaN(this.audioPlayer.duration)) return;
+                this.audioPlayer.currentTime = Math.min(Math.max(0, this.audioPlayer.currentTime + seconds), this.audioPlayer.duration);
+            },
+
+            setupAudioListeners() {
+                this.audioPlayer.addEventListener('timeupdate', () => {
+                    // FIX: guard against NaN before metadata loads
+                    if (!this.audioPlayer.duration || isNaN(this.audioPlayer.duration)) return;
+                    const progress = (this.audioPlayer.currentTime / this.audioPlayer.duration) * 100;
+                    document.getElementById('player-progress').style.width = progress + '%';
+                    document.getElementById('player-current-time').innerText = this.formatTime(this.audioPlayer.currentTime);
+                    document.getElementById('player-duration').innerText = this.formatTime(this.audioPlayer.duration);
+                });
+                this.audioPlayer.addEventListener('ended', () => { this.isPlaying = false; this.updatePlayButton(); });
+            },
+
+            formatTime(seconds) { if (isNaN(seconds)) return '0:00'; const mins = Math.floor(seconds / 60); const secs = Math.floor(seconds % 60); return `${mins}:${secs.toString().padStart(2, '0')}`; },
+
+            async uploadSong() {
+                const title = document.getElementById('song-title').value.trim(); const file = document.getElementById('song-file').files[0];
+                if (!title || !file) return this.showToast('Fill title and select file', 'fa-xmark');
+                if (file.size > 20 * 1024 * 1024) return this.showToast('File too large (max 20MB)', 'fa-xmark');
+
+                const btn = document.getElementById('upload-song-btn'); btn.innerHTML = '<div class="loading-spinner mx-auto"></div>'; btn.disabled = true;
+                try {
+                    const fileExt = file.name.split('.').pop();
+                    const fileName = `${this.state.user.id}/${Date.now()}.${fileExt}`;
+                    const { error: uploadError } = await supabase.storage.from('media').upload(fileName, file);
+                    if (uploadError) throw uploadError;
+
+                    const { data: { publicUrl } } = supabase.storage.from('media').getPublicUrl(fileName);
+                    const songData = { id: 'song_' + Date.now(), title, url: publicUrl, duration: 'Audio' };
+
+                    const currentSongs = this.state.user.songs || [];
+                    const updatedSongs = [...currentSongs, songData];
+                    const { error } = await supabase.from('celebs').update({ songs: updatedSongs }).eq('id', this.state.user.id);
+                    if (error) throw error;
+
+                    // FIX: sync local state + session so the track shows up immediately
+                    this.state.user.songs = updatedSongs; this.saveSession();
+                    const me = this.state.celebs.find(x => x.id === this.state.user.id); if (me) me.songs = updatedSongs;
+
+                    this.showToast('Song uploaded!', 'fa-music');
+                    document.getElementById('song-title').value = ''; document.getElementById('song-file').value = '';
+                } catch (err) { this.showToast('Upload failed: ' + err.message, 'fa-xmark'); }
+                btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up mr-2"></i>Upload Track'; btn.disabled = false;
+            },
+
+            async uploadVideo() {
+                const title = document.getElementById('video-title').value.trim(); const file = document.getElementById('video-file').files[0];
+                if (!title || !file) return this.showToast('Fill title and select file', 'fa-xmark');
+                if (file.size > 50 * 1024 * 1024) return this.showToast('File too large (max 50MB)', 'fa-xmark');
+
+                const btn = document.getElementById('upload-video-btn'); btn.innerHTML = '<div class="loading-spinner mx-auto"></div>'; btn.disabled = true;
+                try {
+                    const fileExt = file.name.split('.').pop();
+                    const fileName = `${this.state.user.id}/${Date.now()}.${fileExt}`;
+                    const { error: uploadError } = await supabase.storage.from('media').upload(fileName, file);
+                    if (uploadError) throw uploadError;
+
+                    const { data: { publicUrl } } = supabase.storage.from('media').getPublicUrl(fileName);
+                    const videoData = { id: 'video_' + Date.now(), title, url: publicUrl, duration: 'Video' };
+
+                    const currentVideos = this.state.user.videos || [];
+                    const updatedVideos = [...currentVideos, videoData];
+                    const { error } = await supabase.from('celebs').update({ videos: updatedVideos }).eq('id', this.state.user.id);
+                    if (error) throw error;
+
+                    // FIX: sync local state + session
+                    this.state.user.videos = updatedVideos; this.saveSession();
+                    const me = this.state.celebs.find(x => x.id === this.state.user.id); if (me) me.videos = updatedVideos;
+
+                    this.showToast('Video uploaded!', 'fa-video');
+                    document.getElementById('video-title').value = ''; document.getElementById('video-file').value = '';
+                } catch (err) { this.showToast('Upload failed: ' + err.message, 'fa-xmark'); }
+                btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up mr-2"></i>Upload Video'; btn.disabled = false;
+            },
+
+            playVideo(url) { const w = window.open('', '_blank'); if (w) w.document.write(`<html><body style="margin:0;background:#000;display:flex;align-items:center;justify-content:center;height:100vh;"><video src="${url}" controls autoplay style="max-width:100%;max-height:100vh;"></video></body></html>`); },
+
+            async startChatFromProfile() {
+                const c = this.state.celebs.find(x => x.id === this.currentProfileId); if (!c) return;
+                if (this.state.user.role === 'celebrity' && this.state.user.id === c.id) return this.showToast('This is your own profile', 'fa-xmark');
+                const chatId = [this.state.user.id, c.id].sort().join('_');
+
+                // FIX: check error properly; maybeSingle() doesn't throw when no row exists
+                const { data, error } = await supabase.from('chats').select('id').eq('id', chatId).maybeSingle();
+                if (error) return this.showToast('Error: ' + error.message, 'fa-xmark');
+                if (!data) {
+                    const { error: insertError } = await supabase.from('chats').insert({
+                        id: chatId,
+                        participants: [this.state.user.id, c.id],
+                        names: { [this.state.user.id]: this.state.user.name, [c.id]: c.name },
+                        avatars: { [this.state.user.id]: this.state.user.avatar, [c.id]: c.avatar },
+                        last_msg: 'Chat request sent...',
+                        messages: [{ sender: 'system', text: 'Chat request pending...', time: new Date().toISOString() }]
+                    });
+                    if (insertError) return this.showToast('Error: ' + insertError.message, 'fa-xmark');
+                }
+                this.showToast('Request Sent!'); this.navTo('chat-list');
+            },
+
+            async loadChats() {
+                const { data, error } = await supabase.from('chats').select('*').contains('participants', [this.state.user.id]);
+                if (!error) {
+                    this.state.chats = data || [];
+                    this.renderChatList();
+                }
+            },
+
+            renderChatList() {
+                const container = document.getElementById('chat-threads-container');
+                if (this.state.chats.length === 0) { container.innerHTML = `<div class="text-center text-slate-500 mt-20"><i class="fa-solid fa-message text-4xl mb-4 text-brand-gold/20"></i><p class="text-sm">No active chats.</p></div>`; return; }
+                container.innerHTML = this.state.chats.map(t => {
+                    const otherId = t.participants.find(id => id !== this.state.user.id);
+                    const name = (t.names && t.names[otherId]) || 'Unknown'; const avatar = (t.avatars && t.avatars[otherId]) || '';
+                    return `<div onclick="app.openChatRoom('${t.id}', '${otherId}')" class="glass-card rounded-2xl p-4 flex items-center space-x-4 cursor-pointer hover:border-brand-gold/30"><img src="${escapeHtml(avatar)}" class="w-12 h-12 rounded-full border border-brand-gold object-cover"><div class="flex-1 min-w-0"><h3 class="font-bold text-white truncate">${escapeHtml(name)}</h3><p class="text-xs text-slate-400 truncate">${escapeHtml(t.last_msg || '')}</p></div></div>`;
+                }).join('');
+            },
+
+            openChatRoom(chatId, otherId) {
+                const t = this.state.chats.find(x => x.id === chatId); if (!t) return;
+                document.getElementById('chat-room-avatar').src = t.avatars[otherId];
+                document.getElementById('chat-room-name').innerText = t.names[otherId];
+                document.getElementById('chat-quick-tags').classList.toggle('hidden', this.state.user.role !== 'fan');
+                this.currentChatId = chatId; this.currentOtherId = otherId;
+                this.renderMessages(t); this.navTo('chat-room');
+            },
+
+            renderMessages(thread) {
+                const area = document.getElementById('chat-messages-area');
+                area.innerHTML = (thread.messages || []).map(m => {
+                    if (m.sender === 'system') return `<div class="text-center text-[10px] text-slate-500 my-2">${escapeHtml(m.text)}</div>`;
+                    const isMe = m.sender === this.state.user.id;
+                    return `<div class="flex ${isMe ? 'justify-end' : 'justify-start'}"><div class="max-w-[80%] rounded-2xl p-3 text-sm ${isMe ? 'gradient-bg text-brand-black rounded-br-none' : 'bg-brand-card text-white border border-brand-border rounded-bl-none'}">${escapeHtml(m.text)}</div></div>`;
+                }).join('');
+                area.scrollTop = area.scrollHeight;
+            },
+
+            handleChatKey(e) { if (e.key === 'Enter') this.sendMessage(); },
+            sendTag(text) { document.getElementById('chat-input').value = text; this.sendMessage(); },
+
+            // FIX: re-render the open chat room and update local state after sending
+            async sendMessage() {
+                const input = document.getElementById('chat-input'); const text = input.value.trim(); if (!text) return;
+                const chat = this.state.chats.find(c => c.id === this.currentChatId);
+                if (!chat) return this.showToast('Chat not loaded', 'fa-xmark');
+                const newMsg = { sender: this.state.user.id, text, time: new Date().toISOString() };
+                const updatedMessages = [...(chat.messages || []), newMsg];
+
+                const { error } = await supabase.from('chats').update({
+                    messages: updatedMessages,
+                    last_msg: text
+                }).eq('id', this.currentChatId);
+                if (error) return this.showToast('Send failed: ' + error.message, 'fa-xmark');
+
+                chat.messages = updatedMessages; chat.last_msg = text;
+                input.value = '';
+                this.renderMessages(chat);
+            },
+
+            renderEditProfile() {
+                const user = this.state.user; document.getElementById('edit-avatar-preview').src = user.avatar;
+                const container = document.getElementById('edit-form-container');
+                if (user.role === 'fan') { container.innerHTML = `<input type="text" id="edit-name" value="${escapeHtml(user.name)}" class="w-full input-field rounded-xl px-4 py-3 text-sm"><div class="grid grid-cols-2 gap-3"><input type="number" id="edit-age" value="${user.age}" class="w-full input-field rounded-xl px-4 py-3 text-sm"><input type="tel" id="edit-phone" value="${escapeHtml(user.phone)}" class="w-full input-field rounded-xl px-4 py-3 text-sm"></div><input type="text" id="edit-location" value="${escapeHtml(user.location)}" class="w-full input-field rounded-xl px-4 py-3 text-sm">`; }
+                else { container.innerHTML = `<input type="text" id="edit-name" value="${escapeHtml(user.name)}" class="w-full input-field rounded-xl px-4 py-3 text-sm"><select id="edit-category" class="w-full input-field rounded-xl px-4 py-3 text-sm"><option value="Music" ${user.category === 'Music' ? 'selected' : ''}>Music Artist</option><option value="Cinema" ${user.category === 'Cinema' ? 'selected' : ''}>Actor/Actress</option><option value="Sports" ${user.category === 'Sports' ? 'selected' : ''}>Athlete</option><option value="Fashion" ${user.category === 'Fashion' ? 'selected' : ''}>Model</option><option value="Gaming" ${user.category === 'Gaming' ? 'selected' : ''}>Gamer</option></select><input type="text" id="edit-country" value="${escapeHtml(user.country)}" class="w-full input-field rounded-xl px-4 py-3 text-sm"><textarea id="edit-bio" rows="3" class="w-full input-field rounded-xl px-4 py-3 text-sm resize-none">${escapeHtml(user.bio)}</textarea>`; }
+            },
+
+            async saveProfileEdit() {
+                const user = this.state.user; const avatar = document.getElementById('edit-avatar-preview').src; const name = document.getElementById('edit-name').value;
+                const updates = { avatar, name };
+                if (user.role === 'fan') { updates.age = parseInt(document.getElementById('edit-age').value); updates.phone = document.getElementById('edit-phone').value; updates.location = document.getElementById('edit-location').value; }
+                else { updates.category = document.getElementById('edit-category').value; updates.country = document.getElementById('edit-country').value; updates.bio = document.getElementById('edit-bio').value; }
+
+                const table = user.role === 'fan' ? 'fans' : 'celebs';
+                const { error } = await supabase.from(table).update(updates).eq('id', user.id);
+                if (error) return this.showToast('Save failed: ' + error.message, 'fa-xmark');
+
+                Object.assign(this.state.user, updates);
+                this.saveSession();
+                this.showToast('Profile updated!', 'fa-check'); this.navTo('settings');
+            },
+
+            renderSettings() {
+                document.getElementById('settings-avatar').src = this.state.user.avatar; document.getElementById('settings-name').innerText = this.state.user.name;
+                document.getElementById('settings-role').innerText = this.state.user.role.toUpperCase();
+                document.getElementById('settings-id').innerText = this.state.user.role === 'fan' ? `ID: ${this.state.user.fan_id}` : `@${this.state.user.username}`;
+            },
+
+            setupLogoTrigger() {
+                document.getElementById('logo-trigger').addEventListener('click', () => { this.state.logoClicks++; clearTimeout(this.state.logoTimer); this.state.logoTimer = setTimeout(() => this.state.logoClicks = 0, 2000); if (this.state.logoClicks === 5) { document.getElementById('admin-modal').classList.remove('hidden'); this.state.logoClicks = 0; } });
+            },
+            closeAdminModal() { document.getElementById('admin-modal').classList.add('hidden'); },
+            attemptAdminLogin() {
+                const u = document.getElementById('admin-user').value; const p = document.getElementById('admin-pass').value;
+                if (u === ADMIN_CREDS.u && p === ADMIN_CREDS.p) { this.state.user = { role: 'admin', name: 'Admin' }; this.closeAdminModal(); this.navTo('admin'); this.showToast('Admin Access Granted', 'fa-shield-halved'); }
+                else this.showToast('Invalid Credentials', 'fa-xmark');
+            },
+
+            async renderAdmin() {
+                const { count: celebCount } = await supabase.from('celebs').select('*', { count: 'exact', head: true });
+                const { count: fanCount } = await supabase.from('fans').select('*', { count: 'exact', head: true });
+                document.getElementById('admin-stat-celebs').innerText = celebCount || 0; document.getElementById('admin-stat-fans').innerText = fanCount || 0;
+
+                const { data: celebs } = await supabase.from('celebs').select('*');
+                document.getElementById('admin-celeb-list').innerHTML = (celebs || []).map(c => `
+                    <div class="glass-card p-3 rounded-xl flex items-center justify-between border border-brand-gold/20">
+                        <div class="flex items-center gap-3"><img src="${escapeHtml(c.avatar)}" class="w-10 h-10 rounded-full border border-brand-gold object-cover"><div><h4 class="font-bold text-white text-sm flex items-center gap-1">${escapeHtml(c.name)} ${c.verified ? '<i class="fa-solid fa-circle-check text-brand-gold text-xs"></i>' : ''}</h4><p class="text-[10px] text-slate-400">${escapeHtml(c.category)}</p></div></div>
+                        <button onclick="app.toggleVerify('${c.id}', ${!c.verified})" class="px-3 py-1.5 rounded-lg text-[10px] font-bold ${c.verified ? 'bg-red-900/20 text-red-400 border border-red-900/50' : 'bg-brand-gold/10 text-brand-gold border border-brand-gold/30'}">${c.verified ? 'Unverify' : 'Verify'}</button>
+                    </div>
+                `).join('');
+            },
+
+            async toggleVerify(id, status) { await supabase.from('celebs').update({ verified: status }).eq('id', id); this.renderAdmin(); },
+            toggleNotifications() { this.showToast('No new notifications'); }
+        };
+
+        document.addEventListener('DOMContentLoaded', () => app.init());
+    </script>
+</body>
+</html>
