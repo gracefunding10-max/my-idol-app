@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>MY IDOL - Exclusive Access</title>
-
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
@@ -61,7 +61,7 @@
     </header>
 
     <main id="main-container" class="flex-1 overflow-y-auto relative w-full max-w-md mx-auto bg-brand-black">
-
+        
         <!-- VIEW: AUTH LANDING -->
         <section id="view-auth" class="hidden h-full flex flex-col items-center justify-center p-6 space-y-6">
             <div class="w-24 h-24 rounded-3xl gradient-bg p-1 shadow-2xl shadow-brand-gold/20 mb-2">
@@ -347,92 +347,154 @@
     </div>
 
     <script>
+        // ✅ YOUR SUPABASE CREDENTIALS ARE CORRECTLY PLACED HERE
         const SUPABASE_URL = 'https://nulnqekcmnpgsrtvomay.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im51bG5xZWtjbW5wZ3NydHZvbWF5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEwNjIwMzAsImV4cCI6MjEwNjYzODAzMH0._wAsXL0PREMP9s0BAPwWHyOSRw7rk1XLm4EN3NMRfb0';
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        
+        let supabase;
+        try {
+            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            console.log('✅ Supabase client created successfully');
+        } catch (err) {
+            console.error('❌ Failed to create Supabase client:', err);
+            alert('Error initializing app. Please check your connection.');
+        }
 
         const ADMIN_CREDS = { u: 'sys_root_88x', p: 'MyIdol$ecure2024!X9#G0ld' };
-
-        // FIX: escape helper so user-entered text can't break markup or inject HTML
-        function escapeHtml(str) {
-            return String(str ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
-        }
 
         const app = {
             state: { user: null, celebs: [], chats: [], pinTemp: '', pinConfirm: null, pinSetupMode: false, logoClicks: 0, logoTimer: null },
             currentProfileId: null, currentChatId: null, currentOtherId: null, audioPlayer: new Audio(), isPlaying: false,
 
             async init() {
+                console.log('🚀 App initializing...');
                 this.setupLogoTrigger();
                 this.setupAudioListeners();
-
-                // FIX: await seeding before navigating so first load isn't empty
-                await this.seedDatabase();
-
+                
                 const savedUser = localStorage.getItem('myidol_current_user');
                 if (savedUser) {
-                    try { this.state.user = JSON.parse(savedUser); } catch (e) { localStorage.removeItem('myidol_current_user'); }
-                }
-                if (this.state.user) {
-                    this.checkSecurity();
+                    try {
+                        this.state.user = JSON.parse(savedUser);
+                        console.log(' Loaded user from localStorage:', this.state.user.name);
+                        this.checkSecurity();
+                    } catch (err) {
+                        console.error('Failed to parse saved user:', err);
+                        localStorage.removeItem('myidol_current_user');
+                        this.navTo('auth');
+                    }
                 } else {
+                    console.log('🆕 No saved user, showing auth screen');
                     this.navTo('auth');
                 }
+
+                await this.seedDatabase();
             },
 
             async seedDatabase() {
-                const { count, error } = await supabase.from('celebs').select('*', { count: 'exact', head: true });
-                if (error || count === null || count > 0) return;
-                const seeds = [
-                    { name: 'Aria Star', category: 'Music', country: 'USA', bio: 'Multi-platinum pop icon.', avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400', followers: 48200, verified: true, songs: [], videos: [], username: 'aria', password: 'aria123', pin: null },
-                    { name: 'Marcus Speed', category: 'Sports', country: 'UK', bio: 'Formula 1 Racer.', avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400', followers: 27900, verified: true, songs: [], videos: [], username: 'marcus', password: 'marcus123', pin: null },
-                    { name: 'Elena Rostova', category: 'Cinema', country: 'France', bio: 'Award-winning actress.', avatar: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=400', followers: 31400, verified: true, songs: [], videos: [], username: 'elena', password: 'elena123', pin: null }
-                ];
-                await supabase.from('celebs').insert(seeds);
+                try {
+                    const { count } = await supabase.from('celebs').select('*', { count: 'exact', head: true });
+                    if (count === 0 || count === null) {
+                        console.log('🌱 Seeding database with sample celebrities...');
+                        const seeds = [
+                            { name: 'Aria Star', category: 'Music', country: 'USA', bio: 'Multi-platinum pop icon.', avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400', followers: 48200, verified: true, songs: [], videos: [], username: 'aria', password: 'aria123', pin: null },
+                            { name: 'Marcus Speed', category: 'Sports', country: 'UK', bio: 'Formula 1 Racer.', avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400', followers: 27900, verified: true, songs: [], videos: [], username: 'marcus', password: 'marcus123', pin: null },
+                            { name: 'Elena Rostova', category: 'Cinema', country: 'France', bio: 'Award-winning actress.', avatar: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=400', followers: 31400, verified: true, songs: [], videos: [], username: 'elena', password: 'elena123', pin: null }
+                        ];
+                        const { error } = await supabase.from('celebs').insert(seeds);
+                        if (error) {
+                            console.error('❌ Error seeding database:', error);
+                        } else {
+                            console.log('✅ Database seeded successfully');
+                        }
+                    } else {
+                        console.log(` Database already has ${count} celebrities`);
+                    }
+                } catch (err) {
+                    console.error('❌ Error checking/seeding database:', err);
+                }
             },
 
             checkSecurity() {
-                this.state.pinTemp = ''; this.state.pinConfirm = null; this.updatePINDots();
                 if (this.state.user?.pin) {
-                    this.state.pinSetupMode = false;
                     this.navTo('pin-setup');
+                    this.state.pinSetupMode = false;
                     document.getElementById('pin-setup-msg').innerText = 'Enter your PIN to unlock';
                 } else {
                     this.navTo(this.state.user.role === 'celebrity' ? 'studio' : 'dashboard');
                 }
             },
 
-            setupPIN() { this.navTo('pin-setup'); this.state.pinSetupMode = true; this.state.pinTemp = ''; this.state.pinConfirm = null; document.getElementById('pin-setup-msg').innerText = 'Create a 4-digit PIN'; this.updatePINDots(); },
+            setupPIN() { 
+                this.navTo('pin-setup'); 
+                this.state.pinSetupMode = true; 
+                this.state.pinTemp = ''; 
+                this.state.pinConfirm = null; 
+                document.getElementById('pin-setup-msg').innerText = 'Create a 4-digit PIN'; 
+                this.updatePINDots(); 
+            },
+            
             changePIN() { this.setupPIN(); },
-            enterPIN(num) { if (this.state.pinTemp.length >= 4) return; this.state.pinTemp += num; this.updatePINDots(); if (this.state.pinTemp.length === 4) setTimeout(() => this.processPIN(), 300); },
-            deletePIN() { this.state.pinTemp = this.state.pinTemp.slice(0, -1); this.updatePINDots(); },
-            clearPIN() { this.state.pinTemp = ''; this.updatePINDots(); },
-            updatePINDots() { document.querySelectorAll('.pin-dot').forEach((dot, i) => dot.classList.toggle('filled', i < this.state.pinTemp.length)); },
+            
+            enterPIN(num) { 
+                if (this.state.pinTemp.length >= 4) return; 
+                this.state.pinTemp += num; 
+                this.updatePINDots(); 
+                if (this.state.pinTemp.length === 4) setTimeout(() => this.processPIN(), 300); 
+            },
+            
+            deletePIN() { 
+                this.state.pinTemp = this.state.pinTemp.slice(0, -1); 
+                this.updatePINDots(); 
+            },
+            
+            clearPIN() { 
+                this.state.pinTemp = ''; 
+                this.updatePINDots(); 
+            },
+            
+            updatePINDots() { 
+                document.querySelectorAll('.pin-dot').forEach((dot, i) => dot.classList.toggle('filled', i < this.state.pinTemp.length)); 
+            },
 
             async processPIN() {
                 if (this.state.pinSetupMode) {
                     if (!this.state.pinConfirm) {
-                        this.state.pinConfirm = this.state.pinTemp; this.state.pinTemp = '';
-                        document.getElementById('pin-setup-msg').innerText = 'Confirm your PIN'; this.updatePINDots();
+                        this.state.pinConfirm = this.state.pinTemp; 
+                        this.state.pinTemp = '';
+                        document.getElementById('pin-setup-msg').innerText = 'Confirm your PIN'; 
+                        this.updatePINDots();
                     } else {
                         if (this.state.pinConfirm === this.state.pinTemp) {
-                            const table = this.state.user.role === 'fan' ? 'fans' : 'celebs';
-                            const { error } = await supabase.from(table).update({ pin: this.state.pinTemp }).eq('id', this.state.user.id);
-                            if (error) { this.showToast('Could not save PIN: ' + error.message, 'fa-xmark'); return; }
-                            this.state.user.pin = this.state.pinTemp; this.state.pinConfirm = null;
-                            this.saveSession();
-                            this.showToast('PIN set successfully!', 'fa-fingerprint');
-                            this.navTo(this.state.user.role === 'celebrity' ? 'studio' : 'dashboard');
+                            try {
+                                const table = this.state.user.role === 'fan' ? 'fans' : 'celebs';
+                                await supabase.from(table).update({ pin: this.state.pinTemp }).eq('id', this.state.user.id);
+                                this.state.user.pin = this.state.pinTemp; 
+                                this.state.pinConfirm = null;
+                                this.saveSession();
+                                this.showToast('PIN set successfully!', 'fa-fingerprint');
+                                this.navTo(this.state.user.role === 'celebrity' ? 'studio' : 'dashboard');
+                            } catch (err) {
+                                console.error('Error saving PIN:', err);
+                                this.showToast('Error saving PIN', 'fa-xmark');
+                            }
                         } else {
-                            this.showToast('PINs do not match', 'fa-xmark'); this.state.pinConfirm = null; this.state.pinTemp = '';
-                            document.getElementById('pin-setup-msg').innerText = 'Create a 4-digit PIN'; this.updatePINDots();
+                            this.showToast('PINs do not match', 'fa-xmark'); 
+                            this.state.pinConfirm = null; 
+                            this.state.pinTemp = '';
+                            document.getElementById('pin-setup-msg').innerText = 'Create a 4-digit PIN'; 
+                            this.updatePINDots();
                         }
                     }
                 } else {
                     if (this.state.pinTemp === this.state.user.pin) {
-                        this.state.pinTemp = ''; this.updatePINDots();
+                        this.state.pinTemp = ''; 
+                        this.updatePINDots();
                         this.navTo(this.state.user.role === 'celebrity' ? 'studio' : 'dashboard');
-                    } else { this.showToast('Incorrect PIN', 'fa-xmark'); this.state.pinTemp = ''; this.updatePINDots(); }
+                    } else { 
+                        this.showToast('Incorrect PIN', 'fa-xmark'); 
+                        this.state.pinTemp = ''; 
+                        this.updatePINDots(); 
+                    }
                 }
             },
 
@@ -440,97 +502,149 @@
 
             async handleFanSignup(e) {
                 e.preventDefault();
-                const btn = e.target.querySelector('button[type="submit"]'); btn.innerHTML = '<div class="loading-spinner mx-auto"></div>'; btn.disabled = true;
+                const btn = e.target.querySelector('button'); 
+                btn.innerHTML = '<div class="loading-spinner mx-auto"></div>'; 
+                btn.disabled = true;
+                
                 try {
                     const fanID = this.generateFanID();
                     const password = 'Fan_' + Math.random().toString(36).substring(2, 8);
                     const avatar = document.getElementById('fan-avatar-preview').src;
-
-                    const fanData = {
-                        fan_id: fanID, name: document.getElementById('fan-name').value, avatar,
-                        age: parseInt(document.getElementById('fan-age').value),
-                        phone: document.getElementById('fan-phone').value,
-                        location: document.getElementById('fan-location').value,
-                        reason: document.getElementById('fan-reason').value, password, pin: null
+                    
+                    const fanData = { 
+                        fan_id: fanID, 
+                        name: document.getElementById('fan-name').value, 
+                        avatar, 
+                        age: parseInt(document.getElementById('fan-age').value), 
+                        phone: document.getElementById('fan-phone').value, 
+                        location: document.getElementById('fan-location').value, 
+                        reason: document.getElementById('fan-reason').value, 
+                        password, 
+                        pin: null 
                     };
-
+                    
                     const { data, error } = await supabase.from('fans').insert(fanData).select().single();
                     if (error) throw error;
-
+                    
                     this.state.user = { ...data, role: 'fan' };
                     this.saveSession();
-                    document.getElementById('cred-id').innerText = fanID; document.getElementById('cred-pass').innerText = password;
+                    document.getElementById('cred-id').innerText = fanID; 
+                    document.getElementById('cred-pass').innerText = password;
                     this.navTo('credentials');
-                } catch (err) { this.showToast('Error: ' + err.message, 'fa-xmark'); }
-                btn.innerHTML = 'Create Account'; btn.disabled = false;
+                } catch (err) { 
+                    console.error('Fan signup error:', err);
+                    this.showToast('Error: ' + err.message, 'fa-xmark'); 
+                }
+                
+                btn.innerHTML = 'Create Account'; 
+                btn.disabled = false;
             },
 
             async handleCelebSignup(e) {
                 e.preventDefault();
-                const btn = e.target.querySelector('button[type="submit"]'); btn.innerHTML = '<div class="loading-spinner mx-auto"></div>'; btn.disabled = true;
+                const btn = e.target.querySelector('button'); 
+                btn.innerHTML = '<div class="loading-spinner mx-auto"></div>'; 
+                btn.disabled = true;
+                
                 try {
                     const name = document.getElementById('celeb-name').value;
                     const username = name.toLowerCase().replace(/\s+/g, '');
                     const password = 'MyIdol_' + Math.random().toString(36).substring(2, 8) + '!';
                     const avatar = document.getElementById('celeb-avatar-preview').src;
 
-                    const celebData = {
-                        name, username, category: document.getElementById('celeb-category').value,
-                        country: document.getElementById('celeb-country').value,
-                        bio: document.getElementById('celeb-bio').value, avatar, password,
-                        followers: 0, verified: false, songs: [], videos: [], pin: null
+                    const celebData = { 
+                        name, 
+                        username, 
+                        category: document.getElementById('celeb-category').value, 
+                        country: document.getElementById('celeb-country').value, 
+                        bio: document.getElementById('celeb-bio').value, 
+                        avatar, 
+                        password, 
+                        followers: 0, 
+                        verified: false, 
+                        songs: [], 
+                        videos: [], 
+                        pin: null 
                     };
-
+                    
                     const { data, error } = await supabase.from('celebs').insert(celebData).select().single();
                     if (error) throw error;
-
+                    
                     this.state.user = { ...data, role: 'celebrity' };
                     this.saveSession();
-                    document.getElementById('cred-id').innerText = username; document.getElementById('cred-pass').innerText = password;
+                    document.getElementById('cred-id').innerText = username; 
+                    document.getElementById('cred-pass').innerText = password;
                     this.navTo('credentials');
-                } catch (err) { this.showToast('Error: ' + err.message, 'fa-xmark'); }
-                btn.innerHTML = 'Create Profile'; btn.disabled = false;
+                } catch (err) { 
+                    console.error('Celeb signup error:', err);
+                    this.showToast('Error: ' + err.message, 'fa-xmark'); 
+                }
+                
+                btn.innerHTML = 'Create Profile'; 
+                btn.disabled = false;
             },
 
-            skipToDashboard() { this.navTo(this.state.user.role === 'celebrity' ? 'studio' : 'dashboard'); },
-            copyCred(id) { navigator.clipboard.writeText(document.getElementById(id).innerText); this.showToast('Copied!', 'fa-copy'); },
-            saveSession() { localStorage.setItem('myidol_current_user', JSON.stringify(this.state.user)); },
+            skipToDashboard() { 
+                this.navTo(this.state.user.role === 'celebrity' ? 'studio' : 'dashboard'); 
+            },
+            
+            copyCred(id) { 
+                navigator.clipboard.writeText(document.getElementById(id).innerText); 
+                this.showToast('Copied!', 'fa-copy'); 
+            },
+            
+            saveSession() { 
+                localStorage.setItem('myidol_current_user', JSON.stringify(this.state.user)); 
+            },
 
             async handleLogin() {
                 const type = document.getElementById('login-type').value;
                 const id = document.getElementById('login-id').value.trim();
                 const pass = document.getElementById('login-pass').value.trim();
+                
                 if (!id || !pass) return this.showToast('Fill all fields', 'fa-xmark');
-
-                const btn = document.getElementById('login-btn'); btn.innerHTML = '<div class="loading-spinner mx-auto"></div>'; btn.disabled = true;
+                
+                const btn = document.getElementById('login-btn'); 
+                btn.innerHTML = '<div class="loading-spinner mx-auto"></div>'; 
+                btn.disabled = true;
+                
                 try {
                     const table = type === 'fan' ? 'fans' : 'celebs';
                     const column = type === 'fan' ? 'fan_id' : 'username';
-
+                    
                     const { data, error } = await supabase.from(table).select('*').eq(column, id).eq('password', pass).single();
                     if (error || !data) throw new Error('Invalid credentials');
-
+                    
                     this.state.user = { ...data, role: type };
                     this.saveSession();
                     this.checkSecurity();
-                } catch (err) { this.showToast('Invalid credentials', 'fa-xmark'); }
-                btn.innerHTML = 'Login'; btn.disabled = false;
+                } catch (err) { 
+                    console.error('Login error:', err);
+                    this.showToast('Invalid credentials', 'fa-xmark'); 
+                }
+                
+                btn.innerHTML = 'Login'; 
+                btn.disabled = false;
             },
 
-            // FIX: stop playback and reset the player on sign-out
-            logout() {
-                this.audioPlayer.pause(); this.audioPlayer.removeAttribute('src'); this.audioPlayer.load();
-                this.isPlaying = false; this.updatePlayButton();
-                this.state.user = null; this.state.chats = []; this.currentChatId = null;
-                localStorage.removeItem('myidol_current_user');
-                this.navTo('auth'); this.showToast('Signed out');
+            logout() { 
+                this.state.user = null; 
+                localStorage.removeItem('myidol_current_user'); 
+                this.navTo('auth'); 
+                this.showToast('Signed out'); 
             },
 
             navTo(viewId) {
+                console.log('📍 Navigating to:', viewId);
                 document.querySelectorAll('main > section').forEach(el => el.classList.add('hidden'));
-                document.getElementById('view-' + viewId).classList.remove('hidden');
-                document.getElementById('main-container').scrollTop = 0;
+                const targetView = document.getElementById('view-' + viewId);
+                if (targetView) {
+                    targetView.classList.remove('hidden');
+                } else {
+                    console.error('View not found:', viewId);
+                }
                 this.renderNav();
+                
                 if (viewId === 'dashboard') this.loadCelebs();
                 if (viewId === 'chat-list') this.loadChats();
                 if (viewId === 'settings') this.renderSettings();
@@ -539,8 +653,12 @@
             },
 
             renderNav() {
-                const nav = document.getElementById('bottom-nav'); const role = this.state.user?.role;
-                if (!role || role === 'admin') { nav.innerHTML = ''; return; }
+                const nav = document.getElementById('bottom-nav'); 
+                const role = this.state.user?.role;
+                if (!role || role === 'admin') { 
+                    nav.innerHTML = ''; 
+                    return; 
+                }
                 if (role === 'fan') {
                     nav.innerHTML = `<button onclick="app.navTo('dashboard')" class="flex flex-col items-center text-brand-gold"><i class="fa-solid fa-compass text-lg"></i><span class="text-[10px] mt-1">Explore</span></button><button onclick="app.navTo('chat-list')" class="flex flex-col items-center text-slate-400 hover:text-white"><i class="fa-solid fa-message text-lg"></i><span class="text-[10px] mt-1">Chats</span></button><button onclick="app.navTo('settings')" class="flex flex-col items-center text-slate-400 hover:text-white"><i class="fa-solid fa-gear text-lg"></i><span class="text-[10px] mt-1">Settings</span></button>`;
                 } else {
@@ -549,332 +667,490 @@
             },
 
             showToast(msg, icon = 'fa-circle-check') {
-                const t = document.getElementById('toast'); document.getElementById('toast-msg').innerText = msg; document.getElementById('toast-icon').className = `fa-solid ${icon} text-brand-gold`;
-                t.classList.remove('opacity-0', 'pointer-events-none', '-translate-y-4'); setTimeout(() => t.classList.add('opacity-0', 'pointer-events-none', '-translate-y-4'), 3000);
+                const t = document.getElementById('toast'); 
+                document.getElementById('toast-msg').innerText = msg; 
+                document.getElementById('toast-icon').className = `fa-solid ${icon} text-brand-gold`;
+                t.classList.remove('opacity-0', 'pointer-events-none', '-translate-y-4'); 
+                setTimeout(() => t.classList.add('opacity-0', 'pointer-events-none', '-translate-y-4'), 3000);
             },
 
-            previewImage(input, imgId) { if (input.files && input.files[0]) { const reader = new FileReader(); reader.onload = e => document.getElementById(imgId).src = e.target.result; reader.readAsDataURL(input.files[0]); } },
+            previewImage(input, imgId) { 
+                if (input.files && input.files[0]) { 
+                    const reader = new FileReader(); 
+                    reader.onload = e => document.getElementById(imgId).src = e.target.result; 
+                    reader.readAsDataURL(input.files[0]); 
+                } 
+            },
 
             async loadCelebs() {
-                const { data, error } = await supabase.from('celebs').select('*').order('followers', { ascending: false });
-                if (!error) {
-                    this.state.celebs = data || [];
-                    this.renderDashboard();
+                try {
+                    const { data, error } = await supabase.from('celebs').select('*').order('followers', { ascending: false });
+                    if (error) {
+                        console.error('Error loading celebs:', error);
+                        this.showToast('Error loading celebrities', 'fa-xmark');
+                    } else {
+                        this.state.celebs = data || [];
+                        this.renderDashboard();
+                    }
+                } catch (err) {
+                    console.error('Exception loading celebs:', err);
                 }
-            },
-
-            // FIX: single shared card renderer used by both dashboard and search
-            celebCard(c) {
-                return `
-                    <div class="glass-card rounded-2xl p-4 flex items-center space-x-4 cursor-pointer hover:border-brand-gold/30 transition-all" onclick="app.openProfile('${c.id}')">
-                        <img src="${escapeHtml(c.avatar)}" class="w-14 h-14 rounded-full border-2 border-brand-gold object-cover">
-                        <div class="flex-1 min-w-0"><h3 class="font-bold text-white flex items-center gap-1 truncate">${escapeHtml(c.name)} ${c.verified ? '<i class="fa-solid fa-circle-check text-brand-gold text-xs"></i>' : ''}</h3><p class="text-xs text-slate-400 truncate">${escapeHtml(c.category)} • ${((c.followers || 0) / 1000).toFixed(1)}k fans</p></div>
-                        <button class="px-4 py-2 rounded-xl gradient-bg text-brand-black text-xs font-bold">View</button>
-                    </div>`;
             },
 
             renderDashboard() {
                 const container = document.getElementById('celeb-list-container');
                 document.getElementById('dash-count').innerText = this.state.celebs.length + ' Stars';
-                if (this.state.celebs.length === 0) { container.innerHTML = `<div class="text-center text-slate-500 mt-20"><i class="fa-solid fa-star text-4xl mb-4 text-brand-gold/20"></i><p class="text-sm">No celebrities yet.</p></div>`; return; }
-                container.innerHTML = this.state.celebs.map(c => this.celebCard(c)).join('');
+                if (this.state.celebs.length === 0) { 
+                    container.innerHTML = `<div class="text-center text-slate-500 mt-20"><i class="fa-solid fa-star text-4xl mb-4 text-brand-gold/20"></i><p class="text-sm">No celebrities yet.</p></div>`; 
+                    return; 
+                }
+                container.innerHTML = this.state.celebs.map(c => `
+                    <div class="glass-card rounded-2xl p-4 flex items-center space-x-4 cursor-pointer hover:border-brand-gold/30 transition-all" onclick="app.openProfile('${c.id}')">
+                        <img src="${c.avatar}" class="w-14 h-14 rounded-full border-2 border-brand-gold object-cover">
+                        <div class="flex-1 min-w-0"><h3 class="font-bold text-white flex items-center gap-1 truncate">${c.name} ${c.verified ? '<i class="fa-solid fa-circle-check text-brand-gold text-xs"></i>' : ''}</h3><p class="text-xs text-slate-400 truncate">${c.category} • ${(c.followers/1000).toFixed(1)}k fans</p></div>
+                        <button class="px-4 py-2 rounded-xl gradient-bg text-brand-black text-xs font-bold">View</button>
+                    </div>
+                `).join('');
             },
 
             filterCelebs() {
                 const q = document.getElementById('search-bar').value.toLowerCase();
-                const filtered = this.state.celebs.filter(c => (c.name || '').toLowerCase().includes(q) || (c.category || '').toLowerCase().includes(q));
-                const container = document.getElementById('celeb-list-container');
-                container.innerHTML = filtered.length
-                    ? filtered.map(c => this.celebCard(c)).join('')
-                    : '<p class="text-center text-slate-500 text-sm py-8">No matches found.</p>';
+                const filtered = this.state.celebs.filter(c => c.name.toLowerCase().includes(q) || c.category.toLowerCase().includes(q));
+                document.getElementById('celeb-list-container').innerHTML = filtered.map(c => `
+                    <div class="glass-card rounded-2xl p-4 flex items-center space-x-4 cursor-pointer hover:border-brand-gold/30 transition-all" onclick="app.openProfile('${c.id}')">
+                        <img src="${c.avatar}" class="w-14 h-14 rounded-full border-2 border-brand-gold object-cover">
+                        <div class="flex-1 min-w-0"><h3 class="font-bold text-white flex items-center gap-1 truncate">${c.name} ${c.verified ? '<i class="fa-solid fa-circle-check text-brand-gold text-xs"></i>' : ''}</h3><p class="text-xs text-slate-400 truncate">${c.category}</p></div>
+                    </div>
+                `).join('');
             },
 
             openProfile(id) {
-                const c = this.state.celebs.find(x => x.id === id); if (!c) return;
-                this.currentProfileId = id;
-                document.getElementById('prof-cover').src = c.avatar; document.getElementById('prof-avatar').src = c.avatar;
-                document.getElementById('prof-name').innerHTML = `${escapeHtml(c.name)} ${c.verified ? '<i class="fa-solid fa-circle-check text-brand-gold text-lg"></i>' : ''}`;
-                document.getElementById('prof-meta').innerText = `${c.category} • ${c.country}`; document.getElementById('prof-bio').innerText = c.bio;
-                document.getElementById('prof-followers').innerText = ((c.followers || 0) / 1000).toFixed(1) + 'k';
-                document.getElementById('prof-songs-count').innerText = (c.songs || []).length; document.getElementById('prof-videos-count').innerText = (c.videos || []).length;
+                const c = this.state.celebs.find(x => x.id === id); 
+                if (!c) return;
+                document.getElementById('prof-cover').src = c.avatar; 
+                document.getElementById('prof-avatar').src = c.avatar;
+                document.getElementById('prof-name').innerHTML = `${c.name} ${c.verified ? '<i class="fa-solid fa-circle-check text-brand-gold text-lg"></i>' : ''}`;
+                document.getElementById('prof-meta').innerText = `${c.category} • ${c.country}`; 
+                document.getElementById('prof-bio').innerText = c.bio;
+                document.getElementById('prof-followers').innerText = (c.followers/1000).toFixed(1) + 'k';
+                document.getElementById('prof-songs-count').innerText = (c.songs || []).length; 
+                document.getElementById('prof-videos-count').innerText = (c.videos || []).length;
                 const btn = document.getElementById('prof-follow-btn');
                 btn.innerText = c.isFollowed ? 'Following' : 'Follow';
                 btn.className = c.isFollowed ? 'px-6 py-2 rounded-full font-bold text-sm bg-brand-card text-slate-300 border border-brand-border' : 'px-6 py-2 rounded-full font-bold text-sm gradient-bg text-brand-black shadow-lg';
-                this.renderProfMedia(c); this.navTo('profile');
+                this.renderProfMedia(c); 
+                this.navTo('profile'); 
+                this.currentProfileId = id;
             },
 
             renderProfMedia(c) {
-                const sList = document.getElementById('prof-songs-list'); const vList = document.getElementById('prof-videos-list');
-                const songs = c.songs || []; const videos = c.videos || [];
+                const sList = document.getElementById('prof-songs-list'); 
+                const vList = document.getElementById('prof-videos-list');
+                const songs = c.songs || []; 
+                const videos = c.videos || [];
                 sList.innerHTML = songs.length ? songs.map(s => `
                     <div class="audio-player rounded-xl p-3 flex items-center justify-between">
-                        <div class="flex items-center gap-3 flex-1 min-w-0"><div class="w-10 h-10 rounded-lg bg-brand-gold/20 flex items-center justify-center text-brand-gold shrink-0"><i class="fa-solid fa-music"></i></div><div class="min-w-0"><p class="text-sm font-bold text-white truncate">${escapeHtml(s.title)}</p><p class="text-[10px] text-slate-400">${escapeHtml(s.duration || 'Audio Track')}</p></div></div>
+                        <div class="flex items-center gap-3 flex-1 min-w-0"><div class="w-10 h-10 rounded-lg bg-brand-gold/20 flex items-center justify-center text-brand-gold shrink-0"><i class="fa-solid fa-music"></i></div><div class="min-w-0"><p class="text-sm font-bold text-white truncate">${s.title}</p><p class="text-[10px] text-slate-400">${s.duration || 'Audio Track'}</p></div></div>
                         <button onclick="app.playSong('${c.id}', '${s.id}')" class="w-10 h-10 rounded-full gradient-bg text-brand-black flex items-center justify-center shrink-0 active:scale-95 transition-transform"><i class="fa-solid fa-play text-sm"></i></button>
                     </div>
                 `).join('') : '<p class="text-center text-slate-500 text-xs py-4">No songs uploaded.</p>';
                 vList.innerHTML = videos.length ? videos.map(v => `
                     <div class="glass-card rounded-xl p-3 flex items-center justify-between">
-                        <div class="flex items-center gap-3 flex-1 min-w-0"><div class="w-10 h-10 rounded-lg bg-brand-gold/20 flex items-center justify-center text-brand-gold shrink-0"><i class="fa-solid fa-video"></i></div><div class="min-w-0"><p class="text-sm font-bold text-white truncate">${escapeHtml(v.title)}</p><p class="text-[10px] text-slate-400">${escapeHtml(v.duration || 'Video')}</p></div></div>
+                        <div class="flex items-center gap-3 flex-1 min-w-0"><div class="w-10 h-10 rounded-lg bg-brand-gold/20 flex items-center justify-center text-brand-gold shrink-0"><i class="fa-solid fa-video"></i></div><div class="min-w-0"><p class="text-sm font-bold text-white truncate">${v.title}</p><p class="text-[10px] text-slate-400">${v.duration || 'Video'}</p></div></div>
                         <button onclick="app.playVideo('${v.url}')" class="w-10 h-10 rounded-full bg-brand-card text-brand-gold border border-brand-gold/30 flex items-center justify-center shrink-0"><i class="fa-solid fa-play text-sm"></i></button>
                     </div>
                 `).join('') : '<p class="text-center text-slate-500 text-xs py-4">No videos uploaded.</p>';
             },
 
             switchProfTab(tab) {
-                document.getElementById('prof-songs-list').classList.toggle('hidden', tab !== 'songs'); document.getElementById('prof-videos-list').classList.toggle('hidden', tab !== 'videos');
+                document.getElementById('prof-songs-list').classList.toggle('hidden', tab !== 'songs'); 
+                document.getElementById('prof-videos-list').classList.toggle('hidden', tab !== 'videos');
                 document.getElementById('tab-btn-songs').className = tab === 'songs' ? 'flex-1 py-3 text-sm font-bold text-brand-gold border-b-2 border-brand-gold' : 'flex-1 py-3 text-sm font-bold text-slate-500';
                 document.getElementById('tab-btn-videos').className = tab === 'videos' ? 'flex-1 py-3 text-sm font-bold text-brand-gold border-b-2 border-brand-gold' : 'flex-1 py-3 text-sm font-bold text-slate-500';
             },
 
-            // FIX: update the local celeb object so the button/count actually change
             async toggleFollow() {
-                const c = this.state.celebs.find(x => x.id === this.currentProfileId); if (!c) return;
-                const newFollowed = !c.isFollowed;
-                const newFollowers = Math.max(0, (c.followers || 0) + (newFollowed ? 1 : -1));
-                const { error } = await supabase.from('celebs').update({ isFollowed: newFollowed, followers: newFollowers }).eq('id', c.id);
-                if (error) return this.showToast('Could not update: ' + error.message, 'fa-xmark');
-                c.isFollowed = newFollowed; c.followers = newFollowers;
-                this.openProfile(this.currentProfileId);
-                this.renderDashboard();
+                const c = this.state.celebs.find(x => x.id === this.currentProfileId); 
+                if (!c) return;
+                const newFollowed = !c.isFollowed; 
+                const newFollowers = (c.followers || 0) + (newFollowed ? 1 : -1);
+                try {
+                    await supabase.from('celebs').update({ isFollowed: newFollowed, followers: newFollowers }).eq('id', c.id);
+                    this.openProfile(this.currentProfileId);
+                } catch (err) {
+                    console.error('Error toggling follow:', err);
+                    this.showToast('Error updating follow status', 'fa-xmark');
+                }
             },
 
             playSong(celebId, songId) {
-                const c = this.state.celebs.find(x => x.id === celebId); if (!c) return;
+                const c = this.state.celebs.find(x => x.id === celebId); 
                 const s = (c.songs || []).find(x => x.id === songId);
                 if (!s || !s.url) return this.showToast('Song unavailable', 'fa-xmark');
-                document.getElementById('player-cover').src = c.avatar; document.getElementById('player-title').innerText = s.title; document.getElementById('player-artist').innerText = c.name;
-                document.getElementById('player-progress').style.width = '0%';
-                this.audioPlayer.src = s.url;
-                this.audioPlayer.play().catch(() => this.showToast('Playback failed', 'fa-xmark'));
-                this.isPlaying = true; this.updatePlayButton(); this.navTo('player');
+                document.getElementById('player-cover').src = c.avatar; 
+                document.getElementById('player-title').innerText = s.title; 
+                document.getElementById('player-artist').innerText = c.name;
+                this.audioPlayer.src = s.url; 
+                this.audioPlayer.play(); 
+                this.isPlaying = true; 
+                this.updatePlayButton(); 
+                this.navTo('player'); 
+                this.playNotificationSound();
             },
 
-            togglePlayPause() {
-                if (!this.audioPlayer.src) return;
-                this.isPlaying ? this.audioPlayer.pause() : this.audioPlayer.play();
-                this.isPlaying = !this.isPlaying; this.updatePlayButton();
+            togglePlayPause() { 
+                this.isPlaying ? this.audioPlayer.pause() : this.audioPlayer.play(); 
+                this.isPlaying = !this.isPlaying; 
+                this.updatePlayButton(); 
             },
-            updatePlayButton() { document.getElementById('player-play-btn').innerHTML = this.isPlaying ? '<i class="fa-solid fa-pause"></i>' : '<i class="fa-solid fa-play"></i>'; },
-            // FIX: clamp seek so currentTime stays within [0, duration]
-            seekPlayer(seconds) {
-                if (!this.audioPlayer.src || isNaN(this.audioPlayer.duration)) return;
-                this.audioPlayer.currentTime = Math.min(Math.max(0, this.audioPlayer.currentTime + seconds), this.audioPlayer.duration);
+            
+            updatePlayButton() { 
+                document.getElementById('player-play-btn').innerHTML = this.isPlaying ? '<i class="fa-solid fa-pause"></i>' : '<i class="fa-solid fa-play"></i>'; 
+            },
+            
+            seekPlayer(seconds) { 
+                this.audioPlayer.currentTime += seconds; 
             },
 
             setupAudioListeners() {
                 this.audioPlayer.addEventListener('timeupdate', () => {
-                    // FIX: guard against NaN before metadata loads
-                    if (!this.audioPlayer.duration || isNaN(this.audioPlayer.duration)) return;
                     const progress = (this.audioPlayer.currentTime / this.audioPlayer.duration) * 100;
                     document.getElementById('player-progress').style.width = progress + '%';
                     document.getElementById('player-current-time').innerText = this.formatTime(this.audioPlayer.currentTime);
                     document.getElementById('player-duration').innerText = this.formatTime(this.audioPlayer.duration);
                 });
-                this.audioPlayer.addEventListener('ended', () => { this.isPlaying = false; this.updatePlayButton(); });
+                this.audioPlayer.addEventListener('ended', () => { 
+                    this.isPlaying = false; 
+                    this.updatePlayButton(); 
+                });
             },
 
-            formatTime(seconds) { if (isNaN(seconds)) return '0:00'; const mins = Math.floor(seconds / 60); const secs = Math.floor(seconds % 60); return `${mins}:${secs.toString().padStart(2, '0')}`; },
+            formatTime(seconds) { 
+                if (isNaN(seconds)) return '0:00'; 
+                const mins = Math.floor(seconds / 60); 
+                const secs = Math.floor(seconds % 60); 
+                return `${mins}:${secs.toString().padStart(2, '0')}`; 
+            },
 
             async uploadSong() {
-                const title = document.getElementById('song-title').value.trim(); const file = document.getElementById('song-file').files[0];
+                const title = document.getElementById('song-title').value.trim(); 
+                const file = document.getElementById('song-file').files[0];
                 if (!title || !file) return this.showToast('Fill title and select file', 'fa-xmark');
                 if (file.size > 20 * 1024 * 1024) return this.showToast('File too large (max 20MB)', 'fa-xmark');
-
-                const btn = document.getElementById('upload-song-btn'); btn.innerHTML = '<div class="loading-spinner mx-auto"></div>'; btn.disabled = true;
+                
+                const btn = document.getElementById('upload-song-btn'); 
+                btn.innerHTML = '<div class="loading-spinner mx-auto"></div>'; 
+                btn.disabled = true;
+                
                 try {
                     const fileExt = file.name.split('.').pop();
                     const fileName = `${this.state.user.id}/${Date.now()}.${fileExt}`;
                     const { error: uploadError } = await supabase.storage.from('media').upload(fileName, file);
                     if (uploadError) throw uploadError;
-
+                    
                     const { data: { publicUrl } } = supabase.storage.from('media').getPublicUrl(fileName);
                     const songData = { id: 'song_' + Date.now(), title, url: publicUrl, duration: 'Audio' };
-
+                    
                     const currentSongs = this.state.user.songs || [];
-                    const updatedSongs = [...currentSongs, songData];
-                    const { error } = await supabase.from('celebs').update({ songs: updatedSongs }).eq('id', this.state.user.id);
-                    if (error) throw error;
-
-                    // FIX: sync local state + session so the track shows up immediately
-                    this.state.user.songs = updatedSongs; this.saveSession();
-                    const me = this.state.celebs.find(x => x.id === this.state.user.id); if (me) me.songs = updatedSongs;
-
+                    await supabase.from('celebs').update({ songs: [...currentSongs, songData] }).eq('id', this.state.user.id);
+                    
                     this.showToast('Song uploaded!', 'fa-music');
-                    document.getElementById('song-title').value = ''; document.getElementById('song-file').value = '';
-                } catch (err) { this.showToast('Upload failed: ' + err.message, 'fa-xmark'); }
-                btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up mr-2"></i>Upload Track'; btn.disabled = false;
+                    document.getElementById('song-title').value = ''; 
+                    document.getElementById('song-file').value = '';
+                    this.playNotificationSound();
+                } catch (err) { 
+                    console.error('Upload error:', err);
+                    this.showToast('Upload failed: ' + err.message, 'fa-xmark'); 
+                }
+                
+                btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up mr-2"></i>Upload Track'; 
+                btn.disabled = false;
             },
 
             async uploadVideo() {
-                const title = document.getElementById('video-title').value.trim(); const file = document.getElementById('video-file').files[0];
+                const title = document.getElementById('video-title').value.trim(); 
+                const file = document.getElementById('video-file').files[0];
                 if (!title || !file) return this.showToast('Fill title and select file', 'fa-xmark');
                 if (file.size > 50 * 1024 * 1024) return this.showToast('File too large (max 50MB)', 'fa-xmark');
-
-                const btn = document.getElementById('upload-video-btn'); btn.innerHTML = '<div class="loading-spinner mx-auto"></div>'; btn.disabled = true;
+                
+                const btn = document.getElementById('upload-video-btn'); 
+                btn.innerHTML = '<div class="loading-spinner mx-auto"></div>'; 
+                btn.disabled = true;
+                
                 try {
                     const fileExt = file.name.split('.').pop();
                     const fileName = `${this.state.user.id}/${Date.now()}.${fileExt}`;
                     const { error: uploadError } = await supabase.storage.from('media').upload(fileName, file);
                     if (uploadError) throw uploadError;
-
+                    
                     const { data: { publicUrl } } = supabase.storage.from('media').getPublicUrl(fileName);
                     const videoData = { id: 'video_' + Date.now(), title, url: publicUrl, duration: 'Video' };
-
+                    
                     const currentVideos = this.state.user.videos || [];
-                    const updatedVideos = [...currentVideos, videoData];
-                    const { error } = await supabase.from('celebs').update({ videos: updatedVideos }).eq('id', this.state.user.id);
-                    if (error) throw error;
-
-                    // FIX: sync local state + session
-                    this.state.user.videos = updatedVideos; this.saveSession();
-                    const me = this.state.celebs.find(x => x.id === this.state.user.id); if (me) me.videos = updatedVideos;
-
+                    await supabase.from('celebs').update({ videos: [...currentVideos, videoData] }).eq('id', this.state.user.id);
+                    
                     this.showToast('Video uploaded!', 'fa-video');
-                    document.getElementById('video-title').value = ''; document.getElementById('video-file').value = '';
-                } catch (err) { this.showToast('Upload failed: ' + err.message, 'fa-xmark'); }
-                btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up mr-2"></i>Upload Video'; btn.disabled = false;
+                    document.getElementById('video-title').value = ''; 
+                    document.getElementById('video-file').value = '';
+                    this.playNotificationSound();
+                } catch (err) { 
+                    console.error('Upload error:', err);
+                    this.showToast('Upload failed: ' + err.message, 'fa-xmark'); 
+                }
+                
+                btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up mr-2"></i>Upload Video'; 
+                btn.disabled = false;
             },
 
-            playVideo(url) { const w = window.open('', '_blank'); if (w) w.document.write(`<html><body style="margin:0;background:#000;display:flex;align-items:center;justify-content:center;height:100vh;"><video src="${url}" controls autoplay style="max-width:100%;max-height:100vh;"></video></body></html>`); },
+            playVideo(url) { 
+                const w = window.open('', '_blank'); 
+                w.document.write(`<html><body style="margin:0;background:#000;display:flex;align-items:center;justify-content:center;height:100vh;"><video src="${url}" controls autoplay style="max-width:100%;max-height:100vh;"></video></body></html>`); 
+            },
 
             async startChatFromProfile() {
-                const c = this.state.celebs.find(x => x.id === this.currentProfileId); if (!c) return;
-                if (this.state.user.role === 'celebrity' && this.state.user.id === c.id) return this.showToast('This is your own profile', 'fa-xmark');
+                const c = this.state.celebs.find(x => x.id === this.currentProfileId); 
+                if (!c) return;
                 const chatId = [this.state.user.id, c.id].sort().join('_');
-
-                // FIX: check error properly; maybeSingle() doesn't throw when no row exists
-                const { data, error } = await supabase.from('chats').select('id').eq('id', chatId).maybeSingle();
-                if (error) return this.showToast('Error: ' + error.message, 'fa-xmark');
-                if (!data) {
-                    const { error: insertError } = await supabase.from('chats').insert({
-                        id: chatId,
-                        participants: [this.state.user.id, c.id],
-                        names: { [this.state.user.id]: this.state.user.name, [c.id]: c.name },
-                        avatars: { [this.state.user.id]: this.state.user.avatar, [c.id]: c.avatar },
-                        last_msg: 'Chat request sent...',
-                        messages: [{ sender: 'system', text: 'Chat request pending...', time: new Date().toISOString() }]
-                    });
-                    if (insertError) return this.showToast('Error: ' + insertError.message, 'fa-xmark');
+                
+                try {
+                    const { data } = await supabase.from('chats').select('id').eq('id', chatId).single();
+                    if (!data) {
+                        await supabase.from('chats').insert({
+                            id: chatId,
+                            participants: [this.state.user.id, c.id],
+                            names: { [this.state.user.id]: this.state.user.name, [c.id]: c.name },
+                            avatars: { [this.state.user.id]: this.state.user.avatar, [c.id]: c.avatar },
+                            last_msg: 'Chat request sent...',
+                            messages: [{ sender: 'system', text: 'Chat request pending...', time: new Date().toISOString() }]
+                        });
+                    }
+                    this.showToast('Request Sent!'); 
+                    this.navTo('chat-list');
+                } catch (err) {
+                    console.error('Chat creation error:', err);
+                    this.showToast('Error creating chat', 'fa-xmark');
                 }
-                this.showToast('Request Sent!'); this.navTo('chat-list');
             },
 
             async loadChats() {
-                const { data, error } = await supabase.from('chats').select('*').contains('participants', [this.state.user.id]);
-                if (!error) {
-                    this.state.chats = data || [];
-                    this.renderChatList();
+                try {
+                    const { data, error } = await supabase.from('chats').select('*').contains('participants', [this.state.user.id]);
+                    if (error) {
+                        console.error('Error loading chats:', error);
+                    } else {
+                        this.state.chats = data || [];
+                        this.renderChatList();
+                    }
+                } catch (err) {
+                    console.error('Exception loading chats:', err);
                 }
             },
 
             renderChatList() {
                 const container = document.getElementById('chat-threads-container');
-                if (this.state.chats.length === 0) { container.innerHTML = `<div class="text-center text-slate-500 mt-20"><i class="fa-solid fa-message text-4xl mb-4 text-brand-gold/20"></i><p class="text-sm">No active chats.</p></div>`; return; }
+                if (this.state.chats.length === 0) { 
+                    container.innerHTML = `<div class="text-center text-slate-500 mt-20"><i class="fa-solid fa-message text-4xl mb-4 text-brand-gold/20"></i><p class="text-sm">No active chats.</p></div>`; 
+                    return; 
+                }
                 container.innerHTML = this.state.chats.map(t => {
                     const otherId = t.participants.find(id => id !== this.state.user.id);
-                    const name = (t.names && t.names[otherId]) || 'Unknown'; const avatar = (t.avatars && t.avatars[otherId]) || '';
-                    return `<div onclick="app.openChatRoom('${t.id}', '${otherId}')" class="glass-card rounded-2xl p-4 flex items-center space-x-4 cursor-pointer hover:border-brand-gold/30"><img src="${escapeHtml(avatar)}" class="w-12 h-12 rounded-full border border-brand-gold object-cover"><div class="flex-1 min-w-0"><h3 class="font-bold text-white truncate">${escapeHtml(name)}</h3><p class="text-xs text-slate-400 truncate">${escapeHtml(t.last_msg || '')}</p></div></div>`;
+                    const name = t.names[otherId] || 'Unknown'; 
+                    const avatar = t.avatars[otherId] || '';
+                    return `<div onclick="app.openChatRoom('${t.id}', '${otherId}')" class="glass-card rounded-2xl p-4 flex items-center space-x-4 cursor-pointer hover:border-brand-gold/30"><img src="${avatar}" class="w-12 h-12 rounded-full border border-brand-gold object-cover"><div class="flex-1 min-w-0"><h3 class="font-bold text-white truncate">${name}</h3><p class="text-xs text-slate-400 truncate">${t.last_msg}</p></div></div>`;
                 }).join('');
             },
 
             openChatRoom(chatId, otherId) {
-                const t = this.state.chats.find(x => x.id === chatId); if (!t) return;
+                const t = this.state.chats.find(x => x.id === chatId); 
+                if (!t) return;
                 document.getElementById('chat-room-avatar').src = t.avatars[otherId];
                 document.getElementById('chat-room-name').innerText = t.names[otherId];
                 document.getElementById('chat-quick-tags').classList.toggle('hidden', this.state.user.role !== 'fan');
-                this.currentChatId = chatId; this.currentOtherId = otherId;
-                this.renderMessages(t); this.navTo('chat-room');
+                this.renderMessages(t); 
+                this.navTo('chat-room'); 
+                this.currentChatId = chatId; 
+                this.currentOtherId = otherId;
             },
 
             renderMessages(thread) {
                 const area = document.getElementById('chat-messages-area');
                 area.innerHTML = (thread.messages || []).map(m => {
-                    if (m.sender === 'system') return `<div class="text-center text-[10px] text-slate-500 my-2">${escapeHtml(m.text)}</div>`;
+                    if (m.sender === 'system') return `<div class="text-center text-[10px] text-slate-500 my-2">${m.text}</div>`;
                     const isMe = m.sender === this.state.user.id;
-                    return `<div class="flex ${isMe ? 'justify-end' : 'justify-start'}"><div class="max-w-[80%] rounded-2xl p-3 text-sm ${isMe ? 'gradient-bg text-brand-black rounded-br-none' : 'bg-brand-card text-white border border-brand-border rounded-bl-none'}">${escapeHtml(m.text)}</div></div>`;
+                    return `<div class="flex ${isMe ? 'justify-end' : 'justify-start'}"><div class="max-w-[80%] rounded-2xl p-3 text-sm ${isMe ? 'gradient-bg text-brand-black rounded-br-none' : 'bg-brand-card text-white border border-brand-border rounded-bl-none'}">${m.text}</div></div>`;
                 }).join('');
                 area.scrollTop = area.scrollHeight;
             },
 
-            handleChatKey(e) { if (e.key === 'Enter') this.sendMessage(); },
-            sendTag(text) { document.getElementById('chat-input').value = text; this.sendMessage(); },
+            handleChatKey(e) { 
+                if (e.key === 'Enter') this.sendMessage(); 
+            },
+            
+            sendTag(text) { 
+                document.getElementById('chat-input').value = text; 
+                this.sendMessage(); 
+            },
 
-            // FIX: re-render the open chat room and update local state after sending
             async sendMessage() {
-                const input = document.getElementById('chat-input'); const text = input.value.trim(); if (!text) return;
-                const chat = this.state.chats.find(c => c.id === this.currentChatId);
-                if (!chat) return this.showToast('Chat not loaded', 'fa-xmark');
-                const newMsg = { sender: this.state.user.id, text, time: new Date().toISOString() };
-                const updatedMessages = [...(chat.messages || []), newMsg];
-
-                const { error } = await supabase.from('chats').update({
-                    messages: updatedMessages,
-                    last_msg: text
-                }).eq('id', this.currentChatId);
-                if (error) return this.showToast('Send failed: ' + error.message, 'fa-xmark');
-
-                chat.messages = updatedMessages; chat.last_msg = text;
-                input.value = '';
-                this.renderMessages(chat);
+                const input = document.getElementById('chat-input'); 
+                const text = input.value.trim(); 
+                if (!text) return;
+                
+                try {
+                    const chat = this.state.chats.find(c => c.id === this.currentChatId);
+                    const newMsg = { sender: this.state.user.id, text, time: new Date().toISOString() };
+                    const updatedMessages = [...(chat.messages || []), newMsg];
+                    
+                    await supabase.from('chats').update({ 
+                        messages: updatedMessages, 
+                        last_msg: text 
+                    }).eq('id', this.currentChatId);
+                    
+                    input.value = ''; 
+                    this.playNotificationSound();
+                    this.loadChats();
+                } catch (err) {
+                    console.error('Send message error:', err);
+                    this.showToast('Error sending message', 'fa-xmark');
+                }
             },
 
             renderEditProfile() {
-                const user = this.state.user; document.getElementById('edit-avatar-preview').src = user.avatar;
+                const user = this.state.user; 
+                document.getElementById('edit-avatar-preview').src = user.avatar;
                 const container = document.getElementById('edit-form-container');
-                if (user.role === 'fan') { container.innerHTML = `<input type="text" id="edit-name" value="${escapeHtml(user.name)}" class="w-full input-field rounded-xl px-4 py-3 text-sm"><div class="grid grid-cols-2 gap-3"><input type="number" id="edit-age" value="${user.age}" class="w-full input-field rounded-xl px-4 py-3 text-sm"><input type="tel" id="edit-phone" value="${escapeHtml(user.phone)}" class="w-full input-field rounded-xl px-4 py-3 text-sm"></div><input type="text" id="edit-location" value="${escapeHtml(user.location)}" class="w-full input-field rounded-xl px-4 py-3 text-sm">`; }
-                else { container.innerHTML = `<input type="text" id="edit-name" value="${escapeHtml(user.name)}" class="w-full input-field rounded-xl px-4 py-3 text-sm"><select id="edit-category" class="w-full input-field rounded-xl px-4 py-3 text-sm"><option value="Music" ${user.category === 'Music' ? 'selected' : ''}>Music Artist</option><option value="Cinema" ${user.category === 'Cinema' ? 'selected' : ''}>Actor/Actress</option><option value="Sports" ${user.category === 'Sports' ? 'selected' : ''}>Athlete</option><option value="Fashion" ${user.category === 'Fashion' ? 'selected' : ''}>Model</option><option value="Gaming" ${user.category === 'Gaming' ? 'selected' : ''}>Gamer</option></select><input type="text" id="edit-country" value="${escapeHtml(user.country)}" class="w-full input-field rounded-xl px-4 py-3 text-sm"><textarea id="edit-bio" rows="3" class="w-full input-field rounded-xl px-4 py-3 text-sm resize-none">${escapeHtml(user.bio)}</textarea>`; }
+                if (user.role === 'fan') { 
+                    container.innerHTML = `<input type="text" id="edit-name" value="${user.name}" class="w-full input-field rounded-xl px-4 py-3 text-sm"><div class="grid grid-cols-2 gap-3"><input type="number" id="edit-age" value="${user.age}" class="w-full input-field rounded-xl px-4 py-3 text-sm"><input type="tel" id="edit-phone" value="${user.phone}" class="w-full input-field rounded-xl px-4 py-3 text-sm"></div><input type="text" id="edit-location" value="${user.location}" class="w-full input-field rounded-xl px-4 py-3 text-sm">`; 
+                } else { 
+                    container.innerHTML = `<input type="text" id="edit-name" value="${user.name}" class="w-full input-field rounded-xl px-4 py-3 text-sm"><select id="edit-category" class="w-full input-field rounded-xl px-4 py-3 text-sm"><option value="Music" ${user.category === 'Music' ? 'selected' : ''}>Music Artist</option><option value="Cinema" ${user.category === 'Cinema' ? 'selected' : ''}>Actor/Actress</option><option value="Sports" ${user.category === 'Sports' ? 'selected' : ''}>Athlete</option><option value="Fashion" ${user.category === 'Fashion' ? 'selected' : ''}>Model</option><option value="Gaming" ${user.category === 'Gaming' ? 'selected' : ''}>Gamer</option></select><input type="text" id="edit-country" value="${user.country}" class="w-full input-field rounded-xl px-4 py-3 text-sm"><textarea id="edit-bio" rows="3" class="w-full input-field rounded-xl px-4 py-3 text-sm resize-none">${user.bio}</textarea>`; 
+                }
             },
 
             async saveProfileEdit() {
-                const user = this.state.user; const avatar = document.getElementById('edit-avatar-preview').src; const name = document.getElementById('edit-name').value;
+                const user = this.state.user; 
+                const avatar = document.getElementById('edit-avatar-preview').src; 
+                const name = document.getElementById('edit-name').value;
                 const updates = { avatar, name };
-                if (user.role === 'fan') { updates.age = parseInt(document.getElementById('edit-age').value); updates.phone = document.getElementById('edit-phone').value; updates.location = document.getElementById('edit-location').value; }
-                else { updates.category = document.getElementById('edit-category').value; updates.country = document.getElementById('edit-country').value; updates.bio = document.getElementById('edit-bio').value; }
-
-                const table = user.role === 'fan' ? 'fans' : 'celebs';
-                const { error } = await supabase.from(table).update(updates).eq('id', user.id);
-                if (error) return this.showToast('Save failed: ' + error.message, 'fa-xmark');
-
-                Object.assign(this.state.user, updates);
-                this.saveSession();
-                this.showToast('Profile updated!', 'fa-check'); this.navTo('settings');
+                
+                if (user.role === 'fan') { 
+                    updates.age = parseInt(document.getElementById('edit-age').value); 
+                    updates.phone = document.getElementById('edit-phone').value; 
+                    updates.location = document.getElementById('edit-location').value; 
+                } else { 
+                    updates.category = document.getElementById('edit-category').value; 
+                    updates.country = document.getElementById('edit-country').value; 
+                    updates.bio = document.getElementById('edit-bio').value; 
+                }
+                
+                try {
+                    const table = user.role === 'fan' ? 'fans' : 'celebs';
+                    await supabase.from(table).update(updates).eq('id', user.id);
+                    
+                    Object.assign(this.state.user, updates);
+                    this.saveSession();
+                    this.showToast('Profile updated!', 'fa-check'); 
+                    this.navTo('settings');
+                } catch (err) {
+                    console.error('Profile update error:', err);
+                    this.showToast('Error updating profile', 'fa-xmark');
+                }
             },
 
             renderSettings() {
-                document.getElementById('settings-avatar').src = this.state.user.avatar; document.getElementById('settings-name').innerText = this.state.user.name;
+                document.getElementById('settings-avatar').src = this.state.user.avatar; 
+                document.getElementById('settings-name').innerText = this.state.user.name;
                 document.getElementById('settings-role').innerText = this.state.user.role.toUpperCase();
                 document.getElementById('settings-id').innerText = this.state.user.role === 'fan' ? `ID: ${this.state.user.fan_id}` : `@${this.state.user.username}`;
             },
 
             setupLogoTrigger() {
-                document.getElementById('logo-trigger').addEventListener('click', () => { this.state.logoClicks++; clearTimeout(this.state.logoTimer); this.state.logoTimer = setTimeout(() => this.state.logoClicks = 0, 2000); if (this.state.logoClicks === 5) { document.getElementById('admin-modal').classList.remove('hidden'); this.state.logoClicks = 0; } });
+                document.getElementById('logo-trigger').addEventListener('click', () => { 
+                    this.state.logoClicks++; 
+                    clearTimeout(this.state.logoTimer); 
+                    this.state.logoTimer = setTimeout(() => this.state.logoClicks = 0, 2000); 
+                    if (this.state.logoClicks === 5) { 
+                        document.getElementById('admin-modal').classList.remove('hidden'); 
+                        this.state.logoClicks = 0; 
+                    } 
+                });
             },
-            closeAdminModal() { document.getElementById('admin-modal').classList.add('hidden'); },
+            
+            closeAdminModal() { 
+                document.getElementById('admin-modal').classList.add('hidden'); 
+            },
+            
             attemptAdminLogin() {
-                const u = document.getElementById('admin-user').value; const p = document.getElementById('admin-pass').value;
-                if (u === ADMIN_CREDS.u && p === ADMIN_CREDS.p) { this.state.user = { role: 'admin', name: 'Admin' }; this.closeAdminModal(); this.navTo('admin'); this.showToast('Admin Access Granted', 'fa-shield-halved'); }
-                else this.showToast('Invalid Credentials', 'fa-xmark');
+                const u = document.getElementById('admin-user').value; 
+                const p = document.getElementById('admin-pass').value;
+                if (u === ADMIN_CREDS.u && p === ADMIN_CREDS.p) { 
+                    this.state.user = { role: 'admin', name: 'Admin' }; 
+                    this.closeAdminModal(); 
+                    this.navTo('admin'); 
+                    this.showToast('Admin Access Granted', 'fa-shield-halved'); 
+                } else {
+                    this.showToast('Invalid Credentials', 'fa-xmark'); 
+                }
             },
 
             async renderAdmin() {
-                const { count: celebCount } = await supabase.from('celebs').select('*', { count: 'exact', head: true });
-                const { count: fanCount } = await supabase.from('fans').select('*', { count: 'exact', head: true });
-                document.getElementById('admin-stat-celebs').innerText = celebCount || 0; document.getElementById('admin-stat-fans').innerText = fanCount || 0;
-
-                const { data: celebs } = await supabase.from('celebs').select('*');
-                document.getElementById('admin-celeb-list').innerHTML = (celebs || []).map(c => `
-                    <div class="glass-card p-3 rounded-xl flex items-center justify-between border border-brand-gold/20">
-                        <div class="flex items-center gap-3"><img src="${escapeHtml(c.avatar)}" class="w-10 h-10 rounded-full border border-brand-gold object-cover"><div><h4 class="font-bold text-white text-sm flex items-center gap-1">${escapeHtml(c.name)} ${c.verified ? '<i class="fa-solid fa-circle-check text-brand-gold text-xs"></i>' : ''}</h4><p class="text-[10px] text-slate-400">${escapeHtml(c.category)}</p></div></div>
-                        <button onclick="app.toggleVerify('${c.id}', ${!c.verified})" class="px-3 py-1.5 rounded-lg text-[10px] font-bold ${c.verified ? 'bg-red-900/20 text-red-400 border border-red-900/50' : 'bg-brand-gold/10 text-brand-gold border border-brand-gold/30'}">${c.verified ? 'Unverify' : 'Verify'}</button>
-                    </div>
-                `).join('');
+                try {
+                    const { count: celebCount } = await supabase.from('celebs').select('*', { count: 'exact', head: true });
+                    const { count: fanCount } = await supabase.from('fans').select('*', { count: 'exact', head: true });
+                    document.getElementById('admin-stat-celebs').innerText = celebCount || 0; 
+                    document.getElementById('admin-stat-fans').innerText = fanCount || 0;
+                    
+                    const { data: celebs } = await supabase.from('celebs').select('*');
+                    document.getElementById('admin-celeb-list').innerHTML = (celebs || []).map(c => `
+                        <div class="glass-card p-3 rounded-xl flex items-center justify-between border border-brand-gold/20">
+                            <div class="flex items-center gap-3"><img src="${c.avatar}" class="w-10 h-10 rounded-full border border-brand-gold object-cover"><div><h4 class="font-bold text-white text-sm flex items-center gap-1">${c.name} ${c.verified ? '<i class="fa-solid fa-circle-check text-brand-gold text-xs"></i>' : ''}</h4><p class="text-[10px] text-slate-400">${c.category}</p></div></div>
+                            <button onclick="app.toggleVerify('${c.id}', ${!c.verified})" class="px-3 py-1.5 rounded-lg text-[10px] font-bold ${c.verified ? 'bg-red-900/20 text-red-400 border border-red-900/50' : 'bg-brand-gold/10 text-brand-gold border border-brand-gold/30'}">${c.verified ? 'Unverify' : 'Verify'}</button>
+                        </div>
+                    `).join('');
+                } catch (err) {
+                    console.error('Admin render error:', err);
+                }
             },
 
-            async toggleVerify(id, status) { await supabase.from('celebs').update({ verified: status }).eq('id', id); this.renderAdmin(); },
-            toggleNotifications() { this.showToast('No new notifications'); }
+            async toggleVerify(id, status) { 
+                try {
+                    await supabase.from('celebs').update({ verified: status }).eq('id', id); 
+                    this.renderAdmin(); 
+                } catch (err) {
+                    console.error('Toggle verify error:', err);
+                }
+            },
+            
+            toggleNotifications() { 
+                this.showToast('No new notifications'); 
+            },
+
+            playNotificationSound() {
+                try { 
+                    const ctx = new (window.AudioContext || window.webkitAudioContext)(); 
+                    const osc = ctx.createOscillator(); 
+                    const gain = ctx.createGain(); 
+                    osc.connect(gain); 
+                    gain.connect(ctx.destination); 
+                    osc.frequency.setValueAtTime(880, ctx.currentTime); 
+                    osc.frequency.exponentialRampToValueAtTime(1320, ctx.currentTime + 0.1); 
+                    gain.gain.setValueAtTime(0.3, ctx.currentTime); 
+                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5); 
+                    osc.start(ctx.currentTime); 
+                    osc.stop(ctx.currentTime + 0.5); 
+                } catch (e) {}
+            }
         };
 
-        document.addEventListener('DOMContentLoaded', () => app.init());
+        // Initialize app when DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log(' MY IDOL app starting...');
+            if (supabase) {
+                app.init();
+            } else {
+                console.error(' Supabase not initialized');
+                alert('App initialization failed. Please refresh the page.');
+            }
+        });
     </script>
 </body>
 </html>
